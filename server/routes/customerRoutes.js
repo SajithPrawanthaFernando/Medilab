@@ -11,7 +11,8 @@ const path = require("path");
 const multer = require("multer");
 const { fileURLToPath } = require("url");
 const { dirname } = require("path");
-const TestRecord = require("../models/TestRecord");
+const TestRecord = require("../models/testRecord");
+const TreatmentRecord = require("../models/treatmentschema");
 
 const createToken = (_id) => {
   return jwt.sign({ _id }, process.env.KEY, { expiresIn: "90d" });
@@ -457,6 +458,152 @@ router.post("/changepassword/:email", async (req, res) => {
   } catch (error) {
     console.error("Failed to change password:", error);
     res.status(500).json({ error: "Failed to change password" });
+  }
+});
+
+router.post("/addrecord", async (req, res) => {
+  try {
+    const { userId, testType, testName, result, date, comments } = req.body;
+
+    // Validate required fields
+    if (!userId || !testType || !testName || !result || !comments) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Optional: Validate if user exists
+    // const user = await User.findById(userId);
+    // if (!user) {
+    //   return res.status(404).json({ message: "User not found." });
+    // }
+
+    // Create new TestRecord
+    const newTestRecord = new TestRecord({
+      userId,
+      testType,
+      testName,
+      result,
+      comments,
+      date: date || Date.now(),
+    });
+
+    const savedRecord = await newTestRecord.save();
+
+    res.status(201).json(savedRecord);
+  } catch (error) {
+    console.error("Error creating TestRecord:", error);
+    res.status(500).json({ message: "Server error. Please try again later." });
+  }
+});
+
+router.get("/getrecord/:userId", async (req, res) => {
+  const { userId } = req.params; // Now this matches the route parameter
+
+  try {
+    const records = await TestRecord.find({ userId }); // Assuming you have a userId field in your TestRecord schema
+    return res.status(200).json(records);
+  } catch (error) {
+    console.error("Error fetching test records:", error);
+    return res.status(500).json({ message: "Failed to fetch test records." });
+  }
+});
+
+router.delete("/deleterecord/:id", async (req, res) => {
+  try {
+    const recordId = req.params.id;
+    await TestRecord.findByIdAndDelete(recordId);
+    res.status(200).json({ message: "Record deleted successfully." });
+  } catch (err) {
+    console.error("Error deleting record:", err);
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
+router.put("/updaterecord/:id", async (req, res) => {
+  try {
+    const recordId = req.params.id;
+    const updatedRecord = await TestRecord.findByIdAndUpdate(
+      recordId,
+      req.body,
+      { new: true }
+    );
+    res.status(200).json(updatedRecord);
+  } catch (err) {
+    console.error("Error updating record:", err);
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
+router.post("/addtreatment", async (req, res) => {
+  const {
+    userId,
+    doctorName,
+    treatmentType,
+    treatmentName,
+    medicinePrescribed,
+    beginDate,
+    endDate,
+    nextSession,
+    currentStatus,
+    frequency,
+  } = req.body;
+
+  try {
+    const treatmentRecord = new TreatmentRecord({
+      userId,
+      doctorName,
+      treatmentType,
+      treatmentName,
+      medicinePrescribed,
+      beginDate,
+      endDate,
+      nextSession,
+      currentStatus,
+
+      frequency,
+    });
+
+    await treatmentRecord.save();
+    res.status(201).json({ message: "Treatment record added successfully!" });
+  } catch (error) {
+    res.status(400).json({ message: "Error adding treatment record.", error });
+  }
+});
+
+router.get("/gettreatment/:userId", async (req, res) => {
+  try {
+    const records = await TreatmentRecord.find({ userId: req.params.userId });
+    res.json(records);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.put("/updatetreatment/:id", async (req, res) => {
+  try {
+    const updatedRecord = await TreatmentRecord.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    if (!updatedRecord)
+      return res.status(404).json({ message: "Record not found" });
+    res.json(updatedRecord);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// Delete a treatment record
+router.delete("/deletetreatment/:id", async (req, res) => {
+  try {
+    const deletedRecord = await TreatmentRecord.findByIdAndDelete(
+      req.params.id
+    );
+    if (!deletedRecord)
+      return res.status(404).json({ message: "Record not found" });
+    res.json({ message: "Record deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

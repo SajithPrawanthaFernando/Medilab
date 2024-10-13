@@ -114,21 +114,45 @@ const AdminLayout = ({ children }) => {
                       Add Patient report
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      to="/admin/viewreport"
+                      className={`block py-2 px-6 text-gray-600 hover:bg-gray-200 rounded ${
+                        isActive("/admin/patientaddreport")
+                          ? "bg-gray-200 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      View Patient report
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link
+                      to="/admin/addtreatment"
+                      className={`block py-2 px-6 text-gray-600 hover:bg-gray-200 rounded ${
+                        isActive("/admin/addtreatment")
+                          ? "bg-gray-200 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      Add Treatment report
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/admin/viewtreatment"
+                      className={`block py-2 px-6 text-gray-600 hover:bg-gray-200 rounded ${
+                        isActive("/admin/addtreatment")
+                          ? "bg-gray-200 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      View Treatment report
+                    </Link>
+                  </li>
                 </ul>
               )}
-            </li>
-
-            {/* Add more navigation items here */}
-            <li>
-              <Link
-                to="/admin/reports"
-                className={`flex items-center py-2 px-6 text-gray-700 hover:bg-gray-200 ${
-                  isActive("/admin/reports") ? "bg-gray-200 font-semibold" : ""
-                }`}
-              >
-                <FaComments className="mr-3" />
-                Reports
-              </Link>
             </li>
           </ul>
         </nav>

@@ -149,72 +149,6 @@ const Customers = () => {
     XLSX.writeFile(workbook, "CustomerData.xlsx");
   };
 
-  useEffect(() => {
-    if (chartRef.current) {
-      chartRef.current.destroy();
-    }
-    const ctx = document.getElementById("bar-chart");
-    chartRef.current = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: registrationData.map((entry) => entry.date),
-        datasets: [
-          {
-            label: "Customer Registration Count",
-            data: registrationData.map((entry) => entry.count),
-            backgroundColor: [
-              "rgba(54, 162, 235, 0.6)",
-              "rgba(255, 206, 86, 0.6)",
-              "rgba(75, 192, 192, 0.6)",
-              "rgba(153, 102, 255, 0.6)",
-              "rgba(255, 159, 64, 0.6)",
-              "rgba(0, 128, 0, 0.6)",
-              "rgba(128, 0, 128, 0.6)",
-              "rgba(128, 128, 0, 0.6)",
-              "rgba(0, 128, 128, 0.6)",
-            ],
-            borderColor: [
-              "rgba(54, 162, 235, 1)",
-              "rgba(255, 206, 86, 1)",
-              "rgba(75, 192, 192, 1)",
-              "rgba(153, 102, 255, 1)",
-              "rgba(255, 159, 64, 1)",
-              "rgba(0, 128, 0, 1)",
-              "rgba(128, 0, 128, 1)",
-              "rgba(128, 128, 0, 1)",
-              "rgba(0, 128, 128, 1)",
-            ],
-            borderWidth: 1,
-            hoverBackgroundColor: [
-              "rgba(54, 162, 235, 0.8)",
-              "rgba(75, 192, 192, 0.8)",
-              "rgba(153, 102, 255, 0.8)",
-              "rgba(255, 159, 64, 0.8)",
-              "rgba(0, 128, 0, 0.8)",
-              "rgba(128, 0, 128, 0.8)",
-              "rgba(128, 128, 0, 0.8)",
-              "rgba(0, 128, 128, 0.8)",
-            ],
-            hoverBorderColor: [
-              "rgba(54, 162, 235, 1)",
-              "rgba(75, 192, 192, 1)",
-              "rgba(153, 102, 255, 1)",
-              "rgba(255, 159, 64, 1)",
-              "rgba(0, 128, 0, 1)",
-              "rgba(128, 0, 128, 1)",
-              "rgba(128, 128, 0, 1)",
-              "rgba(0, 128, 128, 1)",
-            ],
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-      },
-    });
-  }, [registrationData]);
-
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -314,10 +248,10 @@ const Customers = () => {
                   <td className="py-3 px-6 text-left">
                     <span>{new Date(user.updated).toLocaleDateString()}</span>
                   </td>
-                  <td className="py-3 px-6 text-center">
+                  <td className="py-3 px-6 text-left">
                     <button
                       onClick={() => handleDeleteCustomer(user.email)}
-                      className="flex items-center justify-center px-3 py-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
+                      className="flex items-center justify-center px-3 py-2 ml-[4rem] bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                     >
                       <FaTrash />
                     </button>

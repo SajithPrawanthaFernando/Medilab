@@ -1,32 +1,32 @@
-// src/components/Admin/PatientAddReport.jsx
+// src/components/Admin/PatientAddTreatment.jsx
 
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../../Layouts/AdminLayout"; // Ensure the path is correct
 import axios from "axios";
-import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
 import { FaPlus, FaHospitalAlt } from "react-icons/fa"; // Added hospital icon
-import PieChart from "../../../charts/PieChart"; // Ensure the path is correct
-import proImg from "../../../../assets/images/9434619.jpg"; // Ensure the path is correct
 import Modal from "react-modal";
 import { useAuthContext } from "../../../../hooks/useAuthContext"; // Ensure this hook exists and provides the user context
+import proImg from "../../../../assets/images/9434619.jpg";
 
 // Set the app element for accessibility
 Modal.setAppElement("#root"); // Ensure that your root element has the id 'root'
 
-const PatientAddReport = () => {
+const AddTreatment = () => {
   // State variables
   const [users, setUsers] = useState([]);
-  const [registrationData, setRegistrationData] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [reportData, setReportData] = useState({
-    testType: "",
-    testName: "",
-    result: "",
-    date: "",
-    comments: "", // New field added
+  const [treatmentData, setTreatmentData] = useState({
+    doctorName: "",
+    treatmentType: "",
+    treatmentName: "",
+    medicinePrescribed: "",
+    beginDate: "",
+    nextSession: "",
+    currentStatus: "ongoing", // Default value
+    endDate: "",
+    frequency: "once a day", // Default value
   });
 
   // Get user from auth context
@@ -35,7 +35,6 @@ const PatientAddReport = () => {
   // Server URL
   const serverUrl = process.env.REACT_APP_SERVER_URL || "http://localhost:5000";
 
-  // Function to convert ArrayBuffer to Base64
   const arrayBufferToBase64 = (buffer) => {
     let binary = "";
     const bytes = new Uint8Array(buffer);
@@ -45,7 +44,7 @@ const PatientAddReport = () => {
     return btoa(binary);
   };
 
-  // Fetch users and their profile images
+  // Fetch users
   useEffect(() => {
     const fetchUsersWithImages = async () => {
       try {
@@ -88,22 +87,6 @@ const PatientAddReport = () => {
         );
 
         setUsers(usersWithImages);
-
-        // Prepare registration data for charts
-        const registrationDates = usersWithImages.map(
-          (user) => user.updated.split("T")[0]
-        );
-        const registrationCounts = registrationDates.reduce((acc, date) => {
-          acc[date] = (acc[date] || 0) + 1;
-          return acc;
-        }, {});
-        const registrationDataArray = Object.entries(registrationCounts).map(
-          ([date, count]) => ({
-            date,
-            count,
-          })
-        );
-        setRegistrationData(registrationDataArray);
       } catch (err) {
         console.error("Error fetching customers:", err);
         Swal.fire("Error", "Failed to fetch customers.", "error");
@@ -116,56 +99,19 @@ const PatientAddReport = () => {
     }
   }, [serverUrl, user]);
 
-  // Function to export data to Excel
-  const exportToExcel = () => {
-    // Filtered array containing only specific fields
-    const filteredUsers = users.map(
-      ({
-        _id,
-        username,
-        email,
-        phone,
-        updated,
-        address,
-        profileImagePath,
-      }) => ({
-        _id,
-        username,
-        email,
-        phone,
-        updated,
-        address,
-        profileImagePath,
-      })
-    );
-
-    // Creating a new workbook
-    const workbook = XLSX.utils.book_new();
-
-    // Convert filteredUsers array to a worksheet
-    const worksheet = XLSX.utils.json_to_sheet(filteredUsers);
-
-    // Append the worksheet to the workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Customers");
-
-    // Generate an Excel file and trigger download
-    XLSX.writeFile(workbook, "CustomerData.xlsx");
-  };
-
-  // Filter users based on search query
-  const filteredUsers = users.filter((user) =>
-    user.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   // Handle opening the modal
   const openModal = (user) => {
     setSelectedUser(user);
-    setReportData({
-      testType: "",
-      testName: "",
-      result: "",
-      date: "",
-      comments: "", // Reset comments when opening modal
+    setTreatmentData({
+      doctorName: "",
+      treatmentType: "",
+      treatmentName: "",
+      medicinePrescribed: "",
+      beginDate: "",
+      nextSession: "",
+      currentStatus: "ongoing", // Reset to default
+      endDate: "",
+      frequency: "once a day", // Reset to default
     });
     setIsModalOpen(true);
   };
@@ -179,7 +125,7 @@ const PatientAddReport = () => {
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setReportData((prevData) => ({
+    setTreatmentData((prevData) => ({
       ...prevData,
       [name]: value,
     }));
@@ -194,10 +140,26 @@ const PatientAddReport = () => {
       return;
     }
 
-    const { testType, testName, result, date, comments } = reportData; // Destructure comments
+    const {
+      doctorName,
+      treatmentType,
+      treatmentName,
+      medicinePrescribed,
+      beginDate,
+      nextSession,
+      currentStatus,
+      endDate,
+      frequency,
+    } = treatmentData;
 
     // Basic validation
-    if (!testType || !testName || !result || !date) {
+    if (
+      !doctorName ||
+      !treatmentType ||
+      !treatmentName ||
+      !medicinePrescribed ||
+      !beginDate
+    ) {
       Swal.fire("Error", "Please fill in all required fields.", "error");
       return;
     }
@@ -205,15 +167,19 @@ const PatientAddReport = () => {
     try {
       const payload = {
         userId: selectedUser._id, // Use selectedUser's _id
-        testType,
-        testName,
-        result,
-        date,
-        comments, // Include comments in the payload
+        doctorName,
+        treatmentType,
+        treatmentName,
+        medicinePrescribed,
+        beginDate,
+        nextSession,
+        currentStatus,
+        endDate,
+        frequency,
       };
 
       const response = await axios.post(
-        `${serverUrl}/auth/addrecord`, // Ensure this endpoint is correct
+        `${serverUrl}/auth/addtreatment`, // Ensure this endpoint is correct
         payload,
         {
           headers: {
@@ -224,22 +190,24 @@ const PatientAddReport = () => {
       );
 
       if (response.status === 201) {
-        Swal.fire("Success", "Patient report added successfully!", "success");
+        Swal.fire(
+          "Success",
+          "Patient treatment added successfully!",
+          "success"
+        );
         closeModal();
-        // Optionally, refresh the users or reports list here
-        // Example: fetchUsersWithImages(); if you refactor it outside useEffect
       } else {
         Swal.fire(
           "Error",
-          "Failed to add the patient report. Please try again.",
+          "Failed to add the patient treatment. Please try again.",
           "error"
         );
       }
     } catch (error) {
-      console.error("Error adding report:", error);
+      console.error("Error adding treatment:", error);
       Swal.fire(
         "Error",
-        error.response?.data?.message || "Failed to add the patient report.",
+        error.response?.data?.message || "Failed to add the patient treatment.",
         "error"
       );
     }
@@ -252,55 +220,22 @@ const PatientAddReport = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div className="mb-4 md:mb-0">
             <h2 className="text-2xl font-semibold flex items-center">
-              <FaHospitalAlt className="mr-2 text-blue-600" /> All Customers
+              <FaHospitalAlt className="mr-2 text-blue-600" /> Add Patient
+              Treatment
             </h2>
-            <p className="text-gray-600">Manage your hospital customers</p>
-          </div>
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <input
-                type="text"
-                className="block w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Search by username"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                {/* Search Icon */}
-                <svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
-            </div>
-            {/* Export Button */}
-            <button
-              onClick={exportToExcel}
-              className="flex items-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
-            >
-              Export to Excel
-            </button>
+            <p className="text-gray-600">
+              Manage your hospital patients' treatments
+            </p>
           </div>
         </div>
 
-        {/* Customers Table */}
+        {/* Patients Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white rounded-lg overflow-hidden">
             <thead>
               <tr className="bg-blue-100 text-gray-700 uppercase text-sm leading-normal">
+                <th className="py-3 px-6 text-left">Image</th>
                 <th className="py-3 px-6 text-left">ID</th>
-                <th className="py-3 px-6 text-left">Profile</th>
                 <th className="py-3 px-6 text-left">Name</th>
                 <th className="py-3 px-6 text-left">Email</th>
                 <th className="py-3 px-6 text-left">Phone</th>
@@ -309,14 +244,11 @@ const PatientAddReport = () => {
               </tr>
             </thead>
             <tbody className="text-gray-600 text-sm font-light">
-              {filteredUsers.map((user) => (
+              {users.map((user) => (
                 <tr
                   key={user._id}
                   className="border-b border-gray-200 hover:bg-blue-50"
                 >
-                  <td className="py-3 px-6 text-left whitespace-nowrap">
-                    <span>{user._id}</span>
-                  </td>
                   <td className="py-3 px-6 text-left">
                     <img
                       src={
@@ -331,6 +263,9 @@ const PatientAddReport = () => {
                         e.target.src = "https://via.placeholder.com/40";
                       }}
                     />
+                  </td>
+                  <td className="py-3 px-6 text-left whitespace-nowrap">
+                    <span>{user._id}</span>
                   </td>
                   <td className="py-3 px-6 text-left">
                     <span className="font-medium">{user.username}</span>
@@ -349,18 +284,18 @@ const PatientAddReport = () => {
                       onClick={() => openModal(user)}
                       className="flex items-center justify-center px-3 py-2 ml-[5.5rem] bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
                     >
-                      <FaPlus className="mr-2" /> Add Report
+                      <FaPlus className="mr-2" /> Add Treatment
                     </button>
                   </td>
                 </tr>
               ))}
-              {filteredUsers.length === 0 && (
+              {users.length === 0 && (
                 <tr>
                   <td
-                    colSpan="7"
+                    colSpan="4"
                     className="py-4 px-6 text-center text-gray-500"
                   >
-                    No customers found.
+                    No patients found.
                   </td>
                 </tr>
               )}
@@ -372,8 +307,8 @@ const PatientAddReport = () => {
         <Modal
           isOpen={isModalOpen}
           onRequestClose={closeModal}
-          contentLabel="Add Report Modal"
-          className="bg-white rounded-lg max-w-lg mx-auto p-6 relative shadow-lg transform transition-all duration-300"
+          contentLabel="Add Treatment Modal"
+          className="bg-white rounded-lg w-full max-w-3xl mx-auto p-6 relative shadow-lg transform transition-all duration-300"
           overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
           {/* Close Button */}
@@ -387,126 +322,201 @@ const PatientAddReport = () => {
 
           {/* Modal Header */}
           <div className="flex items-center mb-4">
-            <FaHospitalAlt className="text-blue-600 text-3xl mr-2" />
+            <div className="w-16 h-16 rounded-full overflow-hidden mr-4">
+              <img
+                src={selectedUser?.imageUrl || "/path/to/default/image.jpg"}
+                alt="User"
+                className="w-full h-full object-cover"
+              />
+            </div>
             <h2 className="text-2xl font-semibold text-gray-800">
-              Add Patient Report
+              Add Treatment for {selectedUser?.username}
             </h2>
           </div>
 
           {/* Modal Form */}
           <form onSubmit={handleSubmit}>
-            {/* Test Type Field */}
+            {/* Doctor Name Field */}
             <div className="mb-4">
               <label
-                htmlFor="testType"
+                htmlFor="doctorName"
                 className="block text-gray-700 font-medium mb-2"
               >
-                Test Type <span className="text-red-500">*</span>
+                Doctor Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                id="testType"
-                name="testType"
-                value={reportData.testType}
+                id="doctorName"
+                name="doctorName"
+                value={treatmentData.doctorName}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Blood Test"
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
               />
             </div>
 
-            {/* Test Name Field */}
+            {/* Treatment Type Field */}
             <div className="mb-4">
               <label
-                htmlFor="testName"
+                htmlFor="treatmentType"
                 className="block text-gray-700 font-medium mb-2"
               >
-                Test Name <span className="text-red-500">*</span>
+                Treatment Type <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                id="testName"
-                name="testName"
-                value={reportData.testName}
+                id="treatmentType"
+                name="treatmentType"
+                value={treatmentData.treatmentType}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Complete Blood Count"
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
               />
             </div>
 
-            {/* Result Field */}
+            {/* Treatment Name Field */}
             <div className="mb-4">
               <label
-                htmlFor="result"
+                htmlFor="treatmentName"
                 className="block text-gray-700 font-medium mb-2"
               >
-                Result <span className="text-red-500">*</span>
+                Treatment Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                id="result"
-                name="result"
-                value={reportData.result}
+                id="treatmentName"
+                name="treatmentName"
+                value={treatmentData.treatmentName}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Normal"
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
               />
             </div>
 
-            {/* Date Field */}
-            <div className="mb-6">
+            {/* Medicine Prescribed Field */}
+            <div className="mb-4">
               <label
-                htmlFor="date"
+                htmlFor="medicinePrescribed"
                 className="block text-gray-700 font-medium mb-2"
               >
-                Date <span className="text-red-500">*</span>
+                Medicine Prescribed <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="medicinePrescribed"
+                name="medicinePrescribed"
+                value={treatmentData.medicinePrescribed}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            {/* Begin Date Field */}
+            <div className="mb-4">
+              <label
+                htmlFor="beginDate"
+                className="block text-gray-700 font-medium mb-2"
+              >
+                Begin Date <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
-                id="date"
-                name="date"
-                value={reportData.date}
+                id="beginDate"
+                name="beginDate"
+                value={treatmentData.beginDate}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
               />
             </div>
 
-            {/* Comments Field - Newly Added */}
+            {/* Next Session Field */}
             <div className="mb-4">
               <label
-                htmlFor="comments"
+                htmlFor="nextSession"
                 className="block text-gray-700 font-medium mb-2"
               >
-                Comments <span className="text-gray-500">(Optional)</span>
+                Next Session
               </label>
-              <textarea
-                id="comments"
-                name="comments"
-                value={reportData.comments}
+              <input
+                type="date"
+                id="nextSession"
+                name="nextSession"
+                value={treatmentData.nextSession}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter any additional comments or observations..."
-                rows="4"
-              ></textarea>
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+              />
             </div>
 
-            {/* Form Buttons */}
+            {/* Current Status Field */}
+            <div className="mb-4">
+              <label
+                htmlFor="currentStatus"
+                className="block text-gray-700 font-medium mb-2"
+              >
+                Current Status <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="currentStatus"
+                name="currentStatus"
+                value={treatmentData.currentStatus}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+              >
+                <option value="ongoing">Ongoing</option>
+                <option value="end">End</option>
+              </select>
+            </div>
+
+            {/* End Date Field */}
+            <div className="mb-4">
+              <label
+                htmlFor="endDate"
+                className="block text-gray-700 font-medium mb-2"
+              >
+                End Date
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={treatmentData.endDate}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            {/* Frequency Field */}
+            <div className="mb-4">
+              <label
+                htmlFor="frequency"
+                className="block text-gray-700 font-medium mb-2"
+              >
+                Frequency <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="frequency"
+                name="frequency"
+                value={treatmentData.frequency}
+                onChange={handleInputChange}
+                required
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+              >
+                <option value="once a day">Once a Day</option>
+                <option value="once every two days">Once Every Two Days</option>
+                <option value="once a week">Once a Week</option>
+              </select>
+            </div>
+
+            {/* Submit Button */}
             <div className="flex justify-end">
               <button
-                type="button"
-                onClick={closeModal}
-                className="px-4 py-2 mr-3 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition"
-              >
-                Cancel
-              </button>
-              <button
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition flex items-center"
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
               >
-                <FaPlus className="mr-2" /> Add Report
+                Submit
               </button>
             </div>
           </form>
@@ -516,4 +526,4 @@ const PatientAddReport = () => {
   );
 };
 
-export default PatientAddReport;
+export default AddTreatment;

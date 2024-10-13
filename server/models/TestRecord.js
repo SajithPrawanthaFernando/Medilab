@@ -6,6 +6,10 @@ const testRecordSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  testType: {
+    type: String,
+    required: true,
+  },
   testName: {
     type: String,
     required: true,
@@ -13,6 +17,9 @@ const testRecordSchema = new mongoose.Schema({
   result: {
     type: String,
     required: true,
+  },
+  comments: {
+    type: String,
   },
   date: {
     type: Date,
