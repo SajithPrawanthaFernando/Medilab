@@ -40,9 +40,11 @@ const AdminLayout = ({ children }) => {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 transition-transform duration-200 ease-in-out bg-white w-64 shadow-lg z-30`}
       >
-        <div className="flex items-center justify-center h-16 shadow-md">
-          <img src={Logo} alt="Logo" className="h-10 w-auto" />
-        </div>
+        <Link to="/">
+          <div className="flex items-center justify-center h-16 shadow-md cursor-pointer">
+            <img src={Logo} alt="Logo" className="h-10 w-auto" />
+          </div>
+        </Link>
         <nav className="mt-10">
           <ul>
             {/* Dashboard */}
