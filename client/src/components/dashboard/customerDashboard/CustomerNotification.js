@@ -1,5 +1,3 @@
-// src/components/Customer/NotificationPage.jsx
-
 import React, { useState, useEffect } from "react";
 import CustomerLayout from "../../Layouts/CustomerLayout";
 import axios from "axios";
@@ -24,7 +22,6 @@ const NotificationPage = () => {
         },
       })
       .then((result) => {
-        console.log("Notification deleted successfully");
         Swal.fire({
           icon: "success",
           title: "Success",
@@ -35,7 +32,6 @@ const NotificationPage = () => {
         );
       })
       .catch((error) => {
-        console.error("Failed to delete notification:", error);
         Swal.fire({
           icon: "error",
           title: "Error",
@@ -53,7 +49,6 @@ const NotificationPage = () => {
           },
         })
         .then((result) => {
-          console.log(result);
           setNotifications(result.data.notification);
         })
         .catch((err) => console.log(err));
@@ -64,32 +59,48 @@ const NotificationPage = () => {
     <CustomerLayout>
       <div className="container mx-auto px-4 py-8">
         {/* Header Section */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-semibold text-gray-800">
-            Notifications
-          </h3>
+        <div className="mb-6">
+          <h3 className="text-3xl font-bold text-gray-800">Notifications</h3>
+          <p className="text-gray-600 mt-2">
+            View all your notifications related to your hospital management
+            here.
+          </p>
         </div>
 
-        {/* Notifications List */}
-        <div className="space-y-4">
+        {/* Notifications Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {notifications.length > 0 ? (
             notifications.map((notification, index) => (
               <div
                 key={index}
-                className="bg-white shadow-md rounded-lg p-6 flex justify-between items-center"
+                className="bg-white border border-1 border-b-[0_2px_12px_-4px_rgba(6,81,237,0.3)] shadow-[0_2px_12px_-4px_rgba(6,81,237,0.3)] rounded-lg p-6 flex justify-between items-center"
               >
-                <div>
+                {/* Notification Icon */}
+                <div className="flex-shrink-0 mr-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-blue-500"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path d="M10 2a6 6 0 00-6 6v4H3.5a1.5 1.5 0 100 3h13a1.5 1.5 0 100-3H16v-4a6 6 0 00-6-6zM5 12V8a5 5 0 1110 0v4h1a.5.5 0 110 1h-12a.5.5 0 010-1h1z" />
+                  </svg>
+                </div>
+
+                {/* Notification Content */}
+                <div className="flex-1">
                   <h5 className="text-lg font-medium text-gray-900">
                     Feedback Reply
                   </h5>
                   <p className="text-gray-700 mt-2">{notification}</p>
                 </div>
+
+                {/* Delete Button */}
                 <button
                   onClick={() => handleDeleteNotification(index)}
                   className="text-red-500 hover:text-red-700 focus:outline-none"
                   title="Delete Notification"
                 >
-                  {/* Trash Icon (SVG) */}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6"

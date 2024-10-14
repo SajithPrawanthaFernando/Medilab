@@ -1,13 +1,14 @@
-// src/components/Admin/UserTreatmentRecords.jsx
+// src/components/Admin/UserTreatmentRecords.js
 
 import React, { useEffect, useState } from "react";
-import AdminLayout from "../../../Layouts/AdminLayout"; // Ensure the path is correct
+import AdminLayout from "../../../Layouts/AdminLayout";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa"; // Import eye, edit, and trash icons
+import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import Modal from "react-modal";
-import { useAuthContext } from "../../../../hooks/useAuthContext"; // Ensure this hook exists and provides the user context
+import { useAuthContext } from "../../../../hooks/useAuthContext";
 import proImg from "../../../../assets/images/9434619.jpg";
+import { FaPlus, FaHospitalAlt } from "react-icons/fa";
 
 Modal.setAppElement("#root");
 
@@ -17,7 +18,7 @@ const UserTreatmentRecords = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [currentRecord, setCurrentRecord] = useState(null); // Track the current record for editing
+  const [currentRecord, setCurrentRecord] = useState(null);
   const [formData, setFormData] = useState({
     treatmentType: "",
     treatmentName: "",
@@ -28,6 +29,12 @@ const UserTreatmentRecords = () => {
     progress: 0,
     endDate: "",
     frequency: "",
+  });
+
+  const [errors, setErrors] = useState({
+    beginDate: "",
+    endDate: "",
+    nextSession: "",
   });
 
   const { user } = useAuthContext();
@@ -67,7 +74,7 @@ const UserTreatmentRecords = () => {
                   {
                     responseType: "arraybuffer",
                     headers: {
-                      Authorization: `Bearer ${user.token}`, // Include auth header if required
+                      Authorization: `Bearer ${user.token}`, // Include auth header
                     },
                   }
                 );
@@ -182,6 +189,65 @@ const UserTreatmentRecords = () => {
   // Handle submit edit
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
+
+    // Reset errors
+    setErrors({
+      beginDate: "",
+      endDate: "",
+      nextSession: "",
+    });
+
+    // Date validation
+    const newErrors = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of the day for comparison
+    const beginDate = new Date(formData.beginDate);
+    const endDate = new Date(formData.endDate);
+    const nextSession = new Date(formData.nextSession);
+
+    // Check if the begin date is today or a future date
+    if (beginDate < today) {
+      newErrors.beginDate = "Begin date must be today or a future date.";
+    }
+
+    // Check if the end date is after the begin date
+    if (endDate <= beginDate) {
+      newErrors.endDate = "End date must be after the begin date.";
+    }
+
+    // Check if the next session is after the begin date
+    if (nextSession <= beginDate) {
+      newErrors.nextSession = "Next session must be after the begin date.";
+    }
+
+    // Check if the end date is after the next session
+    if (endDate <= nextSession) {
+      newErrors.endDate = "End date must be after the next session.";
+    }
+
+    if (Object.keys(newErrors).length) {
+      // Display validation errors using SweetAlert
+      let errorMessage = "";
+      if (newErrors.beginDate) {
+        errorMessage += `${newErrors.beginDate}\n`;
+      }
+      if (newErrors.endDate) {
+        errorMessage += `${newErrors.endDate}\n`;
+      }
+      if (newErrors.nextSession) {
+        errorMessage += `${newErrors.nextSession}\n`;
+      }
+
+      Swal.fire({
+        title: "Validation Error",
+        text: errorMessage,
+        icon: "error",
+        confirmButtonText: "Okay",
+      });
+
+      return; // Stop submission if there are errors
+    }
+
     try {
       await axios.put(
         `${serverUrl}/auth/updatetreatment/${currentRecord._id}`,
@@ -192,7 +258,7 @@ const UserTreatmentRecords = () => {
       );
       Swal.fire("Success!", "Record updated successfully.", "success");
       setEditModalOpen(false);
-      fetchTreatmentRecords(selectedUser._id); // Refresh treatment records after update
+      fetchTreatmentRecords(selectedUser._id);
     } catch (err) {
       console.error("Error updating record:", err);
       Swal.fire("Error", "Failed to update record.", "error");
@@ -201,20 +267,23 @@ const UserTreatmentRecords = () => {
 
   return (
     <AdminLayout>
-      <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+      <div className="bg-white p-6 rounded-lg shadow-md mx-1 my-2 h-full">
         {/* Header Section */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-semibold">All Users</h2>
-          <p className="text-gray-600">View user treatment records</p>
-        </div>
+        <h2 className="text-2xl font-semibold flex items-center">
+          <FaHospitalAlt className="mr-2 text-blue-600" /> View Patient
+          Treatment
+        </h2>
+        <p className="text-gray-600 mb-12">
+          Manage your hospital patients' treatments
+        </p>
 
         {/* Users Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white rounded-lg overflow-hidden">
             <thead>
               <tr className="bg-blue-100 text-gray-700 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Image</th>
                 <th className="py-3 px-6 text-left">ID</th>
+                <th className="py-3 px-6 text-left">Profile</th>
                 <th className="py-3 px-6 text-left">Name</th>
                 <th className="py-3 px-6 text-left">Email</th>
                 <th className="py-3 px-6 text-left">Phone</th>
@@ -229,6 +298,9 @@ const UserTreatmentRecords = () => {
                   className="border-b border-gray-200 hover:bg-blue-50"
                 >
                   <td className="py-3 px-6 text-left">
+                    <span>{user._id}</span>
+                  </td>
+                  <td className="py-3 px-6 text-left">
                     <img
                       src={
                         user.profileImageData
@@ -242,9 +314,6 @@ const UserTreatmentRecords = () => {
                         e.target.src = "https://via.placeholder.com/40";
                       }}
                     />
-                  </td>
-                  <td className="py-3 px-6 text-left">
-                    <span>{user._id}</span>
                   </td>
                   <td className="py-3 px-6 text-left">
                     <span className="font-medium">{user.username}</span>
@@ -287,7 +356,7 @@ const UserTreatmentRecords = () => {
           isOpen={isModalOpen}
           onRequestClose={closeModal}
           contentLabel="View Treatment Records Modal"
-          className="bg-white rounded-lg max-w-lg mx-auto p-6 relative shadow-lg transform transition-all duration-300"
+          className="bg-white rounded-lg max-w-2xl mx-auto p-6 relative shadow-lg transform transition-all duration-300"
           overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
         >
           <h2 className="text-xl font-semibold mb-4">
@@ -371,28 +440,32 @@ const UserTreatmentRecords = () => {
             &times;
           </button>
           <form onSubmit={handleSubmitEdit}>
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">Treatment Type</label>
-              <input
-                type="text"
-                name="treatmentType"
-                value={formData.treatmentType}
-                onChange={handleChange}
-                required
-                className="border border-gray-300 p-2 rounded-md w-full"
-              />
+            {/* Treatment Type and Treatment Name in one row */}
+            <div className="flex mb-4 space-x-4">
+              <div className="flex-1">
+                <label className="block mb-1 font-medium">Treatment Type</label>
+                <input
+                  type="text"
+                  name="treatmentType"
+                  value={formData.treatmentType}
+                  onChange={handleChange}
+                  required
+                  className="border border-gray-300 p-2 rounded-md w-full"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block mb-1 font-medium">Treatment Name</label>
+                <input
+                  type="text"
+                  name="treatmentName"
+                  value={formData.treatmentName}
+                  onChange={handleChange}
+                  required
+                  className="border border-gray-300 p-2 rounded-md w-full"
+                />
+              </div>
             </div>
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">Treatment Name</label>
-              <input
-                type="text"
-                name="treatmentName"
-                value={formData.treatmentName}
-                onChange={handleChange}
-                required
-                className="border border-gray-300 p-2 rounded-md w-full"
-              />
-            </div>
+            {/* Medicine Prescribed Field */}
             <div className="mb-4">
               <label className="block mb-1 font-medium">
                 Medicine Prescribed
@@ -406,27 +479,31 @@ const UserTreatmentRecords = () => {
                 className="border border-gray-300 p-2 rounded-md w-full"
               />
             </div>
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">Begin Date</label>
-              <input
-                type="date"
-                name="beginDate"
-                value={formData.beginDate}
-                onChange={handleChange}
-                required
-                className="border border-gray-300 p-2 rounded-md w-full"
-              />
+            {/* Begin Date and Next Session in one row */}
+            <div className="flex mb-4 space-x-4">
+              <div className="flex-1">
+                <label className="block mb-1 font-medium">Begin Date</label>
+                <input
+                  type="date"
+                  name="beginDate"
+                  value={formData.beginDate}
+                  onChange={handleChange}
+                  required
+                  className="border border-gray-300 p-2 rounded-md w-full"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block mb-1 font-medium">Next Session</label>
+                <input
+                  type="date"
+                  name="nextSession"
+                  value={formData.nextSession}
+                  onChange={handleChange}
+                  className="border border-gray-300 p-2 rounded-md w-full"
+                />
+              </div>
             </div>
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">Next Session</label>
-              <input
-                type="date"
-                name="nextSession"
-                value={formData.nextSession}
-                onChange={handleChange}
-                className="border border-gray-300 p-2 rounded-md w-full"
-              />
-            </div>
+            {/* Current Status Field */}
             <div className="mb-4">
               <label className="block mb-1 font-medium">Current Status</label>
               <select
@@ -443,45 +520,37 @@ const UserTreatmentRecords = () => {
                 <option value="end">End</option>
               </select>
             </div>
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">Progress</label>
-              <input
-                type="number"
-                name="progress"
-                value={formData.progress}
-                onChange={handleChange}
-                required
-                min="0"
-                max="100"
-                className="border border-gray-300 p-2 rounded-md w-full"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">End Date</label>
-              <input
-                type="date"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleChange}
-                className="border border-gray-300 p-2 rounded-md w-full"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-1 font-medium">Frequency</label>
-              <select
-                name="frequency"
-                value={formData.frequency}
-                onChange={handleChange}
-                required
-                className="border border-gray-300 p-2 rounded-md w-full"
-              >
-                <option value="" disabled>
-                  Select frequency
-                </option>
-                <option value="once a day">Once a day</option>
-                <option value="once every two days">Once every two days</option>
-                <option value="once a week">Once a week</option>
-              </select>
+            {/* End Date and Frequency in one row */}
+            <div className="flex mb-4 space-x-4">
+              <div className="flex-1">
+                <label className="block mb-1 font-medium">End Date</label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  className="border border-gray-300 p-2 rounded-md w-full"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block mb-1 font-medium">Frequency</label>
+                <select
+                  name="frequency"
+                  value={formData.frequency}
+                  onChange={handleChange}
+                  required
+                  className="border border-gray-300 p-2 rounded-md w-full"
+                >
+                  <option value="" disabled>
+                    Select frequency
+                  </option>
+                  <option value="once a day">Once a day</option>
+                  <option value="once every two days">
+                    Once every two days
+                  </option>
+                  <option value="once a week">Once a week</option>
+                </select>
+              </div>
             </div>
             <button
               type="submit"

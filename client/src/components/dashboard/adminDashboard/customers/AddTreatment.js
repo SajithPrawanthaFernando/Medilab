@@ -1,16 +1,16 @@
-// src/components/Admin/PatientAddTreatment.jsx
+// src/components/Admin/PatientAddTreatment.js
 
 import React, { useEffect, useState } from "react";
-import AdminLayout from "../../../Layouts/AdminLayout"; // Ensure the path is correct
+import AdminLayout from "../../../Layouts/AdminLayout";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { FaPlus, FaHospitalAlt } from "react-icons/fa"; // Added hospital icon
+import { FaPlus, FaHospitalAlt } from "react-icons/fa";
 import Modal from "react-modal";
-import { useAuthContext } from "../../../../hooks/useAuthContext"; // Ensure this hook exists and provides the user context
+import { useAuthContext } from "../../../../hooks/useAuthContext";
 import proImg from "../../../../assets/images/9434619.jpg";
 
 // Set the app element for accessibility
-Modal.setAppElement("#root"); // Ensure that your root element has the id 'root'
+Modal.setAppElement("#root");
 
 const AddTreatment = () => {
   // State variables
@@ -30,7 +30,7 @@ const AddTreatment = () => {
   });
 
   // Get user from auth context
-  const { user } = useAuthContext(); // Ensure that `user` contains `token`
+  const { user } = useAuthContext();
 
   // Server URL
   const serverUrl = process.env.REACT_APP_SERVER_URL || "http://localhost:5000";
@@ -44,6 +44,36 @@ const AddTreatment = () => {
     return btoa(binary);
   };
 
+  // Validate dates
+  const validateDates = (beginDate, nextSession, endDate) => {
+    const today = new Date();
+    const begin = new Date(beginDate);
+    const next = new Date(nextSession);
+    const end = new Date(endDate);
+
+    // Check if dates are valid
+    if (begin < today) {
+      Swal.fire("Error", "Begin Date must be today or in the future.", "error");
+      return false;
+    }
+    if (next && (next <= today || next <= begin)) {
+      Swal.fire(
+        "Error",
+        "Next Session must be a future date after Begin Date.",
+        "error"
+      );
+      return false;
+    }
+    if (end <= today || end <= begin || (next && end < next)) {
+      Swal.fire(
+        "Error",
+        "End Date must be in the future and after Begin and Next Session dates.",
+        "error"
+      );
+      return false;
+    }
+    return true;
+  };
   // Fetch users
   useEffect(() => {
     const fetchUsersWithImages = async () => {
@@ -70,7 +100,7 @@ const AddTreatment = () => {
                   {
                     responseType: "arraybuffer",
                     headers: {
-                      Authorization: `Bearer ${user.token}`, // Include auth header if required
+                      Authorization: `Bearer ${user.token}`, // Include auth header
                     },
                   }
                 );
@@ -109,9 +139,9 @@ const AddTreatment = () => {
       medicinePrescribed: "",
       beginDate: "",
       nextSession: "",
-      currentStatus: "ongoing", // Reset to default
+      currentStatus: "ongoing",
       endDate: "",
-      frequency: "once a day", // Reset to default
+      frequency: "once a day",
     });
     setIsModalOpen(true);
   };
@@ -164,9 +194,15 @@ const AddTreatment = () => {
       return;
     }
 
+    // Validate dates
+    if (!validateDates(beginDate, nextSession, endDate)) {
+      return;
+    }
+
+    // Proceed to submit the data if validations pass
     try {
       const payload = {
-        userId: selectedUser._id, // Use selectedUser's _id
+        userId: selectedUser._id,
         doctorName,
         treatmentType,
         treatmentName,
@@ -179,7 +215,7 @@ const AddTreatment = () => {
       };
 
       const response = await axios.post(
-        `${serverUrl}/auth/addtreatment`, // Ensure this endpoint is correct
+        `${serverUrl}/auth/addtreatment`,
         payload,
         {
           headers: {
@@ -215,10 +251,10 @@ const AddTreatment = () => {
 
   return (
     <AdminLayout>
-      <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+      <div className="bg-white p-6 rounded-lg shadow-md mx-1 my-2 h-full">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <div className="mb-4 md:mb-0">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+          <div className="mb-2 md:mb-0">
             <h2 className="text-2xl font-semibold flex items-center">
               <FaHospitalAlt className="mr-2 text-blue-600" /> Add Patient
               Treatment
@@ -234,8 +270,8 @@ const AddTreatment = () => {
           <table className="min-w-full bg-white rounded-lg overflow-hidden">
             <thead>
               <tr className="bg-blue-100 text-gray-700 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Image</th>
                 <th className="py-3 px-6 text-left">ID</th>
+                <th className="py-3 px-6 text-left">Profile</th>
                 <th className="py-3 px-6 text-left">Name</th>
                 <th className="py-3 px-6 text-left">Email</th>
                 <th className="py-3 px-6 text-left">Phone</th>
@@ -249,6 +285,10 @@ const AddTreatment = () => {
                   key={user._id}
                   className="border-b border-gray-200 hover:bg-blue-50"
                 >
+                  <td className="py-3 px-6 text-left whitespace-nowrap">
+                    <span>{user._id}</span>
+                  </td>
+
                   <td className="py-3 px-6 text-left">
                     <img
                       src={
@@ -263,9 +303,6 @@ const AddTreatment = () => {
                         e.target.src = "https://via.placeholder.com/40";
                       }}
                     />
-                  </td>
-                  <td className="py-3 px-6 text-left whitespace-nowrap">
-                    <span>{user._id}</span>
                   </td>
                   <td className="py-3 px-6 text-left">
                     <span className="font-medium">{user.username}</span>
@@ -322,22 +359,18 @@ const AddTreatment = () => {
 
           {/* Modal Header */}
           <div className="flex items-center mb-4">
-            <div className="w-16 h-16 rounded-full overflow-hidden mr-4">
-              <img
-                src={selectedUser?.imageUrl || "/path/to/default/image.jpg"}
-                alt="User"
-                className="w-full h-full object-cover"
-              />
-            </div>
             <h2 className="text-2xl font-semibold text-gray-800">
               Add Treatment for {selectedUser?.username}
             </h2>
           </div>
 
           {/* Modal Form */}
-          <form onSubmit={handleSubmit}>
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
             {/* Doctor Name Field */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label
                 htmlFor="doctorName"
                 className="block text-gray-700 font-medium mb-2"
@@ -356,7 +389,7 @@ const AddTreatment = () => {
             </div>
 
             {/* Treatment Type Field */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label
                 htmlFor="treatmentType"
                 className="block text-gray-700 font-medium mb-2"
@@ -375,7 +408,7 @@ const AddTreatment = () => {
             </div>
 
             {/* Treatment Name Field */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label
                 htmlFor="treatmentName"
                 className="block text-gray-700 font-medium mb-2"
@@ -394,7 +427,7 @@ const AddTreatment = () => {
             </div>
 
             {/* Medicine Prescribed Field */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label
                 htmlFor="medicinePrescribed"
                 className="block text-gray-700 font-medium mb-2"
@@ -413,7 +446,7 @@ const AddTreatment = () => {
             </div>
 
             {/* Begin Date Field */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label
                 htmlFor="beginDate"
                 className="block text-gray-700 font-medium mb-2"
@@ -432,7 +465,7 @@ const AddTreatment = () => {
             </div>
 
             {/* Next Session Field */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label
                 htmlFor="nextSession"
                 className="block text-gray-700 font-medium mb-2"
@@ -450,7 +483,7 @@ const AddTreatment = () => {
             </div>
 
             {/* Current Status Field */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label
                 htmlFor="currentStatus"
                 className="block text-gray-700 font-medium mb-2"
@@ -471,7 +504,7 @@ const AddTreatment = () => {
             </div>
 
             {/* End Date Field */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label
                 htmlFor="endDate"
                 className="block text-gray-700 font-medium mb-2"
@@ -489,7 +522,7 @@ const AddTreatment = () => {
             </div>
 
             {/* Frequency Field */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label
                 htmlFor="frequency"
                 className="block text-gray-700 font-medium mb-2"
@@ -511,7 +544,7 @@ const AddTreatment = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end col-span-2">
               <button
                 type="submit"
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"

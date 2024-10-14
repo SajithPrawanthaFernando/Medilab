@@ -216,7 +216,7 @@ const CustomerDashboard = () => {
     <CustomerLayout>
       {/* Header Section */}
       <div className="flex justify-between items-center py-4 border-b ">
-        <h3 className="text-lg font-bold">Profile Settings</h3>
+        <h3 className="text-2xl font-semibold ml-5">Profile Settings</h3>
         {user && (
           <div className="flex items-center">
             <form className="ml-4" encType="multipart/form-data">

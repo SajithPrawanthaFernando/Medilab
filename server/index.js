@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const userrouter = require("./routes/customerRoutes");
-const db = require("./databse"); // Ensure this is the correct path
+const db = require("./databse");
 
 dotenv.config();
 const app = express();

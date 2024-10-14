@@ -1,12 +1,12 @@
-// src/components/Admin/FeedbackManagement.jsx
+// src/components/Admin/FeedbackManagement.js
 
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../../../Layouts/AdminLayout";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
-import BarChart from "../../../charts/BarChart"; // Import the BarChart component
-import PieChart from "../../../charts/PieChart"; // Import the PieChart component
+import { FaPlus, FaHospitalAlt } from "react-icons/fa";
+import proImg from "../../../../assets/images/9434619.jpg";
 
 const FeedbackManagement = () => {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -15,7 +15,8 @@ const FeedbackManagement = () => {
   const [notification, setReplyMessage] = useState("");
   const [users, setUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dailyFeedbackCountData, setDailyFeedbackCountData] = useState([]); // State for daily feedback count data
+  const [dailyFeedbackCountData, setDailyFeedbackCountData] = useState([]);
+  const serverUrl = "http://localhost:5000";
 
   // Function to handle closing the feedback modal
   const handleFeedbackModalClose = () => {
@@ -75,10 +76,20 @@ const FeedbackManagement = () => {
       });
   };
 
+  // Function to convert ArrayBuffer to Base64
+  const arrayBufferToBase64 = (buffer) => {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  };
+
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/auth/handlecustomer")
-      .then((result) => {
+    const fetchUsersWithImages = async () => {
+      try {
+        const result = await axios.get(`${serverUrl}/auth/handlecustomer`);
         const filteredUsers = result.data.filter(
           (user) => user.role === "user" && user.feedback
         );
@@ -88,28 +99,37 @@ const FeedbackManagement = () => {
           return new Date(b.date) - new Date(a.date);
         });
 
-        setUsers(sortedUsers);
-
-        // Prepare data for daily feedback count chart
-        const feedbackDates = sortedUsers.map(
-          (user) => user.date.split("T")[0]
-        ); // Use 'date' instead of 'updated'
-        const feedbackCounts = feedbackDates.reduce((acc, date) => {
-          acc[date] = (acc[date] || 0) + 1;
-          return acc;
-        }, {});
-        const feedbackDataArray = Object.entries(feedbackCounts).map(
-          ([date, count]) => ({
-            date,
-            count,
+        // Fetch profile images for sorted users concurrently
+        const usersWithImages = await Promise.all(
+          sortedUsers.map(async (user) => {
+            if (user.filename) {
+              try {
+                const imageResponse = await axios.get(
+                  `${serverUrl}/auth/images/${user.filename}`, // Use serverUrl for consistency
+                  {
+                    responseType: "arraybuffer",
+                  }
+                );
+                const base64Image = arrayBufferToBase64(imageResponse.data);
+                return { ...user, profileImageData: base64Image };
+              } catch (err) {
+                console.error(`Error fetching image for ${user.email}:`, err);
+                return { ...user, profileImageData: null };
+              }
+            } else {
+              return { ...user, profileImageData: null };
+            }
           })
         );
 
-        setDailyFeedbackCountData(feedbackDataArray);
-      })
-      .catch((err) => console.log(err));
-  }, []);
+        setUsers(usersWithImages);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      }
+    };
 
+    fetchUsersWithImages();
+  }, [serverUrl]);
   // Filtered users based on search query
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -137,13 +157,14 @@ const FeedbackManagement = () => {
 
   return (
     <AdminLayout>
-      <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+      <div className="bg-white p-6 rounded-lg shadow-md mx-1 my-2 h-full">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div className="mb-4 md:mb-0">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              All Feedbacks
+            <h2 className="text-2xl font-semibold flex items-center">
+              <FaHospitalAlt className="mr-2 text-blue-600" /> All Feedbacks
             </h2>
+
             <p className="text-gray-600">
               Manage customer feedback effectively
             </p>
@@ -190,11 +211,13 @@ const FeedbackManagement = () => {
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white rounded-lg overflow-hidden">
             <thead>
-              <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+              <tr className="bg-blue-100 text-gray-600 uppercase text-sm leading-normal">
                 <th className="py-3 px-6 text-left">Customer ID</th>
+                <th className="py-3 px-6 text-left">Profile</th>
                 <th className="py-3 px-6 text-left">Customer Name</th>
                 <th className="py-3 px-6 text-left">Customer Email</th>
-                <th className="py-3 px-6 text-left">Feedback Date</th>
+                <th className="py-3 px-6 text-left">Customer Phone</th>
+                <th className="py-3 px-6 text-left">Feedback date</th>
                 <th className="py-3 px-6 text-center">Action</th>
               </tr>
             </thead>
@@ -208,13 +231,33 @@ const FeedbackManagement = () => {
                     <span>{feedback._id}</span>
                   </td>
                   <td className="py-3 px-6 text-left">
+                    <img
+                      src={
+                        feedback.profileImageData
+                          ? `data:image/jpeg;base64,${feedback.profileImageData}`
+                          : proImg
+                      }
+                      className="w-10 h-10 rounded-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null; // Prevent infinite loop if fallback fails
+                        e.target.src = "https://via.placeholder.com/40";
+                      }}
+                    />
+                  </td>
+
+                  <td className="py-3 px-6 text-left">
                     <span className="font-medium">{feedback.username}</span>
                   </td>
                   <td className="py-3 px-6 text-left">
                     <span>{feedback.email}</span>
                   </td>
                   <td className="py-3 px-6 text-left">
-                    <span>{new Date(feedback.date).toLocaleDateString()}</span>
+                    <span>{feedback.phone}</span>
+                  </td>
+                  <td className="py-3 px-6 text-left">
+                    <span>
+                      {new Date(feedback.updated).toLocaleDateString()}
+                    </span>
                   </td>
                   <td className="py-3 px-6 text-center">
                     <button
@@ -263,7 +306,9 @@ const FeedbackManagement = () => {
                 </p>
                 <p>
                   <strong>Feedback Date:</strong>{" "}
-                  {new Date(selectedCustomerFeedback.date).toLocaleDateString()}
+                  {new Date(
+                    selectedCustomerFeedback.updated
+                  ).toLocaleDateString()}
                 </p>
                 <hr className="my-4" />
                 <p>
@@ -310,23 +355,6 @@ const FeedbackManagement = () => {
             </div>
           </div>
         )}
-
-        {/* Charts Section */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Bar Chart */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">Daily Feedback Count</h3>
-            <BarChart data={dailyFeedbackCountData} />
-          </div>
-
-          {/* Pie Chart */}
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-xl font-semibold mb-4">
-              Feedback Distribution
-            </h3>
-            <PieChart data={dailyFeedbackCountData} />
-          </div>
-        </div>
       </div>
     </AdminLayout>
   );

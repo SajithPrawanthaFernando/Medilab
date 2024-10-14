@@ -47,9 +47,9 @@ const Header = () => {
 
   const menu = [
     { name: "Home", link: "/" },
-    { name: "Shop", link: "/shop" },
-    { name: "Blog", link: "/blog" },
+    { name: "Blog", link: "/about" },
     { name: "About", link: "/about" },
+    { name: "F&Q", link: "/about" },
     { name: "Contact", link: "/contact" },
   ];
 

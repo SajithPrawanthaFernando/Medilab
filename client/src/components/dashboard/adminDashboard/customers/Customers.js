@@ -1,4 +1,4 @@
-// src/components/Admin/Customers.jsx
+// src/components/Admin/Customers.js
 
 import React, { useEffect, useState, useRef } from "react";
 import AdminLayout from "../../../Layouts/AdminLayout";
@@ -9,6 +9,7 @@ import Swal from "sweetalert2";
 import { FaTrash } from "react-icons/fa";
 import PieChart from "../../../charts/PieChart";
 import proImg from "../../../../assets/images/9434619.jpg";
+import { FaPlus, FaHospitalAlt } from "react-icons/fa";
 
 const Customers = () => {
   const [users, setUsers] = useState([]);
@@ -44,7 +45,7 @@ const Customers = () => {
             if (user.filename) {
               try {
                 const imageResponse = await axios.get(
-                  `http://localhost:5000/auth/images/${user.filename}`,
+                  `${serverUrl}/auth/images/${user.filename}`, // Use serverUrl for consistency
                   {
                     responseType: "arraybuffer",
                   }
@@ -62,24 +63,8 @@ const Customers = () => {
         );
 
         setUsers(usersWithImages);
-
-        // Prepare registration data for charts
-        const registrationDates = usersWithImages.map(
-          (user) => user.updated.split("T")[0]
-        );
-        const registrationCounts = registrationDates.reduce((acc, date) => {
-          acc[date] = (acc[date] || 0) + 1;
-          return acc;
-        }, {});
-        const registrationDataArray = Object.entries(registrationCounts).map(
-          ([date, count]) => ({
-            date,
-            count,
-          })
-        );
-        setRegistrationData(registrationDataArray);
       } catch (err) {
-        console.error("Error fetching customers:", err);
+        console.error("Error fetching users:", err);
       }
     };
 
@@ -155,11 +140,14 @@ const Customers = () => {
 
   return (
     <AdminLayout>
-      <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+      <div className="bg-white p-6 rounded-lg  my-2 mx-1 h-full shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] ">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div className="mb-4 md:mb-0">
-            <h2 className="text-2xl font-semibold">All Customers</h2>
+            <h2 className="text-2xl font-semibold flex items-center">
+              <FaHospitalAlt className="mr-2 text-blue-600" /> All Customers
+            </h2>
+
             <p className="text-gray-600">Manage your hospital customers</p>
           </div>
           <div className="flex flex-col md:flex-row gap-4">
@@ -202,7 +190,7 @@ const Customers = () => {
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white rounded-lg overflow-hidden">
             <thead>
-              <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+              <tr className="bg-blue-100 text-gray-600 uppercase text-sm leading-normal">
                 <th className="py-3 px-6 text-left">ID</th>
                 <th className="py-3 px-6 text-left">Profile</th>
                 <th className="py-3 px-6 text-left">Name</th>
@@ -251,7 +239,7 @@ const Customers = () => {
                   <td className="py-3 px-6 text-left">
                     <button
                       onClick={() => handleDeleteCustomer(user.email)}
-                      className="flex items-center justify-center px-3 py-2 ml-[4rem] bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                      className="flex items-center justify-center px-3 py-2 ml-[3rem] bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                     >
                       <FaTrash />
                     </button>

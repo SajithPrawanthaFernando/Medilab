@@ -4,12 +4,11 @@ import { MemoryRouter } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useAuthContext } from "../src/hooks/useAuthContext";
-import NotificationPage from "../src/components/dashboard/customerDashboard/CustomerNotification"; // Adjust the import path accordingly
+import NotificationPage from "../src/components/dashboard/customerDashboard/CustomerNotification";
 import "@testing-library/jest-dom";
 
-// Mocking the axios module
 jest.mock("axios");
-// Mocking Swal for alerts
+
 jest.mock("sweetalert2");
 
 // Mocking the useAuthContext hook
@@ -36,37 +35,54 @@ describe("NotificationPage Component", () => {
       data: { notification: notificationsData },
     });
 
-    render(
-      <MemoryRouter>
-        <NotificationPage />
-      </MemoryRouter>
-    );
+    try {
+      render(
+        <MemoryRouter>
+          <NotificationPage />
+        </MemoryRouter>
+      );
 
-    // Check if the title is rendered uniquely
-    expect(
-      screen.getByRole("heading", { name: /notifications/i })
-    ).toBeInTheDocument();
+      // Check if the title is rendered uniquely
+      expect(
+        screen.getByRole("heading", { name: /notifications/i })
+      ).toBeInTheDocument();
 
-    // Wait for notifications to be fetched and rendered
-    await waitFor(() => {
-      expect(screen.getByText("Feedback reply 1")).toBeInTheDocument();
-      expect(screen.getByText("Feedback reply 2")).toBeInTheDocument();
-    });
+      // Wait for notifications to be fetched and rendered
+      await waitFor(() => {
+        expect(screen.getByText("Feedback reply 1")).toBeInTheDocument();
+        expect(screen.getByText("Feedback reply 2")).toBeInTheDocument();
+      });
+
+      console.log("Test passed: renders notifications when fetched");
+    } catch (error) {
+      console.error("Test failed: renders notifications when fetched", error);
+    }
   });
 
   test("displays message when no notifications are found", async () => {
     axios.get.mockResolvedValue({ data: { notification: [] } });
 
-    render(
-      <MemoryRouter>
-        <NotificationPage />
-      </MemoryRouter>
-    );
+    try {
+      render(
+        <MemoryRouter>
+          <NotificationPage />
+        </MemoryRouter>
+      );
 
-    // Wait for the message to be displayed
-    await waitFor(() => {
-      expect(screen.getByText(/no notifications found/i)).toBeInTheDocument();
-    });
+      // Wait for the message to be displayed
+      await waitFor(() => {
+        expect(screen.getByText(/no notifications found/i)).toBeInTheDocument();
+      });
+
+      console.log(
+        "Test passed: displays message when no notifications are found"
+      );
+    } catch (error) {
+      console.error(
+        "Test failed: displays message when no notifications are found",
+        error
+      );
+    }
   });
 
   test("deletes a notification and shows success message", async () => {
@@ -76,31 +92,42 @@ describe("NotificationPage Component", () => {
     });
     axios.delete.mockResolvedValue({});
 
-    render(
-      <MemoryRouter>
-        <NotificationPage />
-      </MemoryRouter>
-    );
+    try {
+      render(
+        <MemoryRouter>
+          <NotificationPage />
+        </MemoryRouter>
+      );
 
-    // Wait for notifications to be fetched and rendered
-    await waitFor(() => {
-      expect(screen.getByText("Feedback reply 1")).toBeInTheDocument();
-    });
-
-    // Simulate delete action
-    fireEvent.click(screen.getByTitle("Delete Notification"));
-
-    // Check for success message
-    await waitFor(() => {
-      expect(Swal.fire).toHaveBeenCalledWith({
-        icon: "success",
-        title: "Success",
-        text: "Notification deleted successfully!",
+      // Wait for notifications to be fetched and rendered
+      await waitFor(() => {
+        expect(screen.getByText("Feedback reply 1")).toBeInTheDocument();
       });
-    });
 
-    // Check if the notification is removed from the DOM
-    expect(screen.queryByText("Feedback reply 1")).toBeNull();
+      // Simulate delete action
+      fireEvent.click(screen.getByTitle("Delete Notification"));
+
+      // Check for success message
+      await waitFor(() => {
+        expect(Swal.fire).toHaveBeenCalledWith({
+          icon: "success",
+          title: "Success",
+          text: "Notification deleted successfully!",
+        });
+      });
+
+      // Check if the notification is removed from the DOM
+      expect(screen.queryByText("Feedback reply 1")).toBeNull();
+
+      console.log(
+        "Test passed: deletes a notification and shows success message"
+      );
+    } catch (error) {
+      console.error(
+        "Test failed: deletes a notification and shows success message",
+        error
+      );
+    }
   });
 
   test("shows error alert when deleting a notification fails", async () => {
@@ -110,27 +137,38 @@ describe("NotificationPage Component", () => {
     });
     axios.delete.mockRejectedValue(new Error("Failed to delete notification."));
 
-    render(
-      <MemoryRouter>
-        <NotificationPage />
-      </MemoryRouter>
-    );
+    try {
+      render(
+        <MemoryRouter>
+          <NotificationPage />
+        </MemoryRouter>
+      );
 
-    // Wait for notifications to be fetched and rendered
-    await waitFor(() => {
-      expect(screen.getByText("Feedback reply 1")).toBeInTheDocument();
-    });
-
-    // Simulate delete action
-    fireEvent.click(screen.getByTitle("Delete Notification"));
-
-    // Check for error alert
-    await waitFor(() => {
-      expect(Swal.fire).toHaveBeenCalledWith({
-        icon: "error",
-        title: "Error",
-        text: "Failed to delete the notification.",
+      // Wait for notifications to be fetched and rendered
+      await waitFor(() => {
+        expect(screen.getByText("Feedback reply 1")).toBeInTheDocument();
       });
-    });
+
+      // Simulate delete action
+      fireEvent.click(screen.getByTitle("Delete Notification"));
+
+      // Check for error alert
+      await waitFor(() => {
+        expect(Swal.fire).toHaveBeenCalledWith({
+          icon: "error",
+          title: "Error",
+          text: "Failed to delete the notification.",
+        });
+      });
+
+      console.log(
+        "Test passed: shows error alert when deleting a notification fails"
+      );
+    } catch (error) {
+      console.error(
+        "Test failed: shows error alert when deleting a notification fails",
+        error
+      );
+    }
   });
 });

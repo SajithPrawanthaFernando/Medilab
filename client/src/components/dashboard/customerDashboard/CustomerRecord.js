@@ -1,11 +1,11 @@
-// src/components/Customer/CustomerRecord.jsx
+// src/components/Customer/CustomerRecord.js
 
 import React, { useState, useEffect } from "react";
 import CustomerLayout from "../../Layouts/CustomerLayout";
 import axios from "axios";
 import { useAuthContext } from "../../../hooks/useAuthContext";
 import Swal from "sweetalert2";
-import Logo from "../../../assets/images/logo.png"; // Ensure the path and file name are correct
+import Logo from "../../../assets/images/logo.png";
 import {
   FaTint,
   FaXRay,
@@ -17,7 +17,7 @@ import { GiCheckMark } from "react-icons/gi";
 
 import { IoMdClose } from "react-icons/io";
 import FocusLock from "react-focus-lock";
-import { FaVial } from "react-icons/fa"; // Add this import
+import { FaVial } from "react-icons/fa";
 
 const CustomerRecord = () => {
   const [testRecords, setTestRecords] = useState([]);
@@ -195,11 +195,11 @@ const CustomerRecord = () => {
         </div>
 
         {/* Test Type Counts */}
-        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
           {Object.entries(testTypeCounts).map(([type, count]) => (
             <div
               key={type}
-              className="bg-white shadow-lg rounded-lg p-6 flex items-center"
+              className="bg-white border border-1 border-b-[0_2px_10px_-3px_rgba(6,81,237,0.3)] shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] rounded-lg p-6 flex items-center"
             >
               <div className="flex-shrink-0">
                 {/* Icon based on test type */}
@@ -222,7 +222,7 @@ const CustomerRecord = () => {
           {currentRecords.map((record) => (
             <div
               key={record._id}
-              className="bg-white shadow-lg rounded-lg p-6 cursor-pointer hover:shadow-2xl transition duration-300 ease-in-out"
+              className="bg-white shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] rounded-lg p-6 cursor-pointer hover:shadow-2xl transition duration-300 ease-in-out"
               onClick={() => handleCardClick(record)}
             >
               <div className="flex items-center">
@@ -354,7 +354,7 @@ const CustomerRecord = () => {
                   />
                   <div>
                     <h3 className="text-2xl font-semibold text-gray-800">
-                      Hospital Name
+                      Medilab
                     </h3>
                     <p className="text-gray-600">
                       123 Medical Street, City, Country

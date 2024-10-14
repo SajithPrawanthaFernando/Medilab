@@ -1,153 +1,135 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import AdminLayout from "../../Layouts/AdminLayout";
 import Card from "../../common/Card";
-import BarChart from "../../charts/BarChart";
 import PieChart from "../../charts/PieChart";
+import BarChart from "../../charts/BarChart";
+import DoughnutChart from "../../charts/DoughnutChart";
 import axios from "axios";
-import Chart from "chart.js/auto";
-import * as XLSX from "xlsx";
-import Swal from "sweetalert2";
 
 const Dashboard = () => {
-    const [users, setUsers] = useState([]);
-    const [registrationData, setRegistrationData] = useState([]);
-    const chartRef = useRef(null);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [dailyFeedbackCountData, setDailyFeedbackCountData] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [registrationData, setRegistrationData] = useState([]);
+  const [dailyFeedbackCountData, setDailyFeedbackCountData] = useState([]);
 
-    useEffect(() => {
-        axios
-            .get("http://localhost:5000/auth/handlecustomer")
-            .then((result) => {
-                // Filter users with role 'user'
-                const filteredUsers = result.data.filter(
-                    (user) => user.role === "user"
-                );
-                setUsers(filteredUsers);
+  // Sample data for cards
+  const totalUsers = users.length; // Count of users from API
+  const totalProducts = 150; // Example static data
+  const totalOrders = 300; // Example static data
+  const totalEmployees = 20; // Example static data
 
-                // The rest of your logic remains the same
-                const registrationDates = filteredUsers.map(
-                    (user) => user.updated.split("T")[0]
-                );
-                const registrationCounts = registrationDates.reduce((acc, date) => {
-                    acc[date] = (acc[date] || 0) + 1;
-                    return acc;
-                }, {});
-                const registrationDataArray = Object.entries(registrationCounts).map(
-                    ([date, count]) => ({
-                        date,
-                        count,
-                    })
-                );
-                setRegistrationData(registrationDataArray);
-            })
-            .catch((err) => console.log(err));
-    }, []);
+  useEffect(() => {
+    // Fetch users data for registration count
+    axios
+      .get("http://localhost:5000/auth/handlecustomer")
+      .then((result) => {
+        const filteredUsers = result.data.filter(
+          (user) => user.role === "user"
+        );
+        setUsers(filteredUsers);
 
-    useEffect(() => {
-        axios
-            .get("http://localhost:5000/auth/handlecustomer")
-            .then((result) => {
-                const filteredUsers = result.data.filter(
-                    (user) => user.role === "user" && user.feedback
-                );
+        const registrationDates = filteredUsers.map(
+          (user) => user.updated.split("T")[0]
+        );
+        const registrationCounts = registrationDates.reduce((acc, date) => {
+          acc[date] = (acc[date] || 0) + 1;
+          return acc;
+        }, {});
+        const registrationDataArray = Object.entries(registrationCounts).map(
+          ([date, count]) => ({ date, count })
+        );
+        setRegistrationData(registrationDataArray);
+      })
+      .catch((err) => console.log(err));
+  }, []);
 
-                // Sort the filtered users by feedback date in descending order
-                const sortedUsers = filteredUsers.sort((a, b) => {
-                    return new Date(b.date) - new Date(a.date);
-                });
+  useEffect(() => {
+    // Fetch feedback data
+    axios
+      .get("http://localhost:5000/auth/handlecustomer")
+      .then((result) => {
+        const filteredUsers = result.data.filter(
+          (user) => user.role === "user" && user.feedback
+        );
 
-                setUsers(sortedUsers);
+        // Debugging: Log the filtered users to see if we have data
+        console.log("Filtered Users for Feedback:", filteredUsers);
 
-                // Prepare data for daily feedback count chart
-                const feedbackDates = sortedUsers.map(
-                    (user) => user.date.split("T")[0] // Use 'date' instead of 'updated'
-                );
-                const feedbackCounts = feedbackDates.reduce((acc, date) => {
-                    acc[date] = (acc[date] || 0) + 1;
-                    return acc;
-                }, {});
-                const feedbackDataArray = Object.entries(feedbackCounts).map(
-                    ([date, count]) => ({
-                        date,
-                        count,
-                    })
-                );
+        const sortedUsers = filteredUsers.sort((a, b) => {
+          return new Date(b.updated) - new Date(a.updated); // Use 'updated' instead of 'date'
+        });
 
-                setDailyFeedbackCountData(feedbackDataArray);
-            })
-            .catch((err) => console.log(err));
-    }, []);
+        // Prepare data for daily feedback count chart
+        const feedbackDates = sortedUsers.map(
+          (user) => user.updated.split("T")[0] // Use 'updated' for extracting date
+        );
+        const feedbackCounts = feedbackDates.reduce((acc, date) => {
+          acc[date] = (acc[date] || 0) + 1;
+          return acc;
+        }, {});
+        const feedbackDataArray = Object.entries(feedbackCounts).map(
+          ([date, count]) => ({ date, count })
+        );
 
-    return (
-        <>
-            <AdminLayout>
-                {/* Overview */}
-                <div className="bg-white p-3 mt-3 rounded shadow-sm">
-                    <h3 className="fs-5 fw-bold">Overview</h3>
+        // Debugging: Log the feedback data to check the structure
+        console.log("Daily Feedback Count Data:", feedbackDataArray);
 
-                    <div className="row mt-4">
-                        <div className="col-lg-3">
-                            <Card
-                                title="Total Users"
-                                number="50"
-                                icon={<i class="bi bi-people-fill"></i>}
-                                subtext="Increased by 60%"
-                            />
-                        </div>
-                        <div className="col-lg-3">
-                            <Card
-                                title="Total Products"
-                                number="50"
-                                icon={<i class="bi bi-people-fill"></i>}
-                                subtext="Increased by 60%"
-                            />
-                        </div>
-                        <div className="col-lg-3">
-                            <Card
-                                title="Total Orders"
-                                number="50"
-                                icon={<i class="bi bi-people-fill"></i>}
-                                subtext="Increased by 60%"
-                            />
-                        </div>
-                        <div className="col-lg-3">
-                            <Card
-                                title="Total Employees"
-                                number="50"
-                                icon={<i class="bi bi-people-fill"></i>}
-                                subtext="Increased by 60%"
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div className="mt-3">
-                    <div className="row">
-                        {/* Bar Chart */}
-                        <div className="col-lg-6">
-                            <div className="card border-0 p-3">
-                                <div className="card-body">
-                                    <h2>Daily Registration Count</h2>
-                                    <br></br>
-                                    <PieChart data={registrationData} />
-                                </div>
-                            </div>
-                        </div>
+        setDailyFeedbackCountData(feedbackDataArray);
+      })
+      .catch((err) => console.log(err));
+  }, []);
 
-                        <div className="col-lg-6">
-                            <div className="card border-0 p-3">
-                                <div className="card-body">
-                                    <h2>Daily Feedback Count</h2>
-                                    <br></br>
-                                    <PieChart data={dailyFeedbackCountData} />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </AdminLayout>
-        </>
-    );
+  return (
+    <AdminLayout>
+      {/* Overview Section */}
+      <div className="bg-white p-6 mx-1 my-2 rounded-lg shadow-md">
+        <h3 className="text-xl font-semibold">Overview</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          <Card
+            title="Total Users"
+            number={totalUsers}
+            icon={<i className="bi bi-people-fill"></i>}
+            subtext="Total registered users in the system"
+          />
+          <Card
+            title="Total Products"
+            number={totalProducts}
+            icon={<i className="bi bi-box-fill"></i>}
+            subtext="Total medical products available"
+          />
+          <Card
+            title="Total Orders"
+            number={totalOrders}
+            icon={<i className="bi bi-cart-fill"></i>}
+            subtext="Total orders processed this month"
+          />
+          <Card
+            title="Total Employees"
+            number={totalEmployees}
+            icon={<i className="bi bi-person-fill"></i>}
+            subtext="Total employees currently working"
+          />
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="mx-1 my-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Daily Registration Count Chart */}
+        <div className="bg-white p-4 rounded-lg shadow-md w-full h-74">
+          <h2 className="text-lg font-semibold">Daily Registration Count</h2>
+          <PieChart data={registrationData} />
+        </div>
+
+        {/* Daily Feedback Count Chart */}
+        <div className="bg-white p-4 rounded-lg shadow-md w-full h-74">
+          <h2 className="text-lg font-semibold">Daily Feedback Count</h2>
+          <DoughnutChart
+            dataCounts={dailyFeedbackCountData.map((item) => item.count)}
+            labels={dailyFeedbackCountData.map((item) => item.date)}
+          />
+        </div>
+      </div>
+    </AdminLayout>
+  );
 };
 
 export default Dashboard;

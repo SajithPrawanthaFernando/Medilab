@@ -1,9 +1,9 @@
-// src/pages/Login.jsx
+// src/pages/Login.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuthContext } from "../hooks/useAuthContext";
-import LoginImg from "../assets/images/login.png"; // Your image path
+import LoginImg from "../assets/images/login.png";
 
 const Login = () => {
   const [email, setEmail] = useState("");

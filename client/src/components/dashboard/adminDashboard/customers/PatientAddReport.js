@@ -1,18 +1,18 @@
-// src/components/Admin/PatientAddReport.jsx
+// src/components/Admin/PatientAddReport.js
 
 import React, { useEffect, useState } from "react";
-import AdminLayout from "../../../Layouts/AdminLayout"; // Ensure the path is correct
+import AdminLayout from "../../../Layouts/AdminLayout";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import Swal from "sweetalert2";
-import { FaPlus, FaHospitalAlt } from "react-icons/fa"; // Added hospital icon
-import PieChart from "../../../charts/PieChart"; // Ensure the path is correct
-import proImg from "../../../../assets/images/9434619.jpg"; // Ensure the path is correct
+import { FaPlus, FaHospitalAlt } from "react-icons/fa";
+import PieChart from "../../../charts/PieChart";
+import proImg from "../../../../assets/images/9434619.jpg";
 import Modal from "react-modal";
-import { useAuthContext } from "../../../../hooks/useAuthContext"; // Ensure this hook exists and provides the user context
+import { useAuthContext } from "../../../../hooks/useAuthContext";
 
 // Set the app element for accessibility
-Modal.setAppElement("#root"); // Ensure that your root element has the id 'root'
+Modal.setAppElement("#root");
 
 const PatientAddReport = () => {
   // State variables
@@ -26,11 +26,11 @@ const PatientAddReport = () => {
     testName: "",
     result: "",
     date: "",
-    comments: "", // New field added
+    comments: "",
   });
 
   // Get user from auth context
-  const { user } = useAuthContext(); // Ensure that `user` contains `token`
+  const { user } = useAuthContext();
 
   // Server URL
   const serverUrl = process.env.REACT_APP_SERVER_URL || "http://localhost:5000";
@@ -71,7 +71,7 @@ const PatientAddReport = () => {
                   {
                     responseType: "arraybuffer",
                     headers: {
-                      Authorization: `Bearer ${user.token}`, // Include auth header if required
+                      Authorization: `Bearer ${user.token}`, // Include auth header
                     },
                   }
                 );
@@ -165,7 +165,7 @@ const PatientAddReport = () => {
       testName: "",
       result: "",
       date: "",
-      comments: "", // Reset comments when opening modal
+      comments: "",
     });
     setIsModalOpen(true);
   };
@@ -194,26 +194,37 @@ const PatientAddReport = () => {
       return;
     }
 
-    const { testType, testName, result, date, comments } = reportData; // Destructure comments
+    const { testType, testName, result, date } = reportData;
 
-    // Basic validation
     if (!testType || !testName || !result || !date) {
       Swal.fire("Error", "Please fill in all required fields.", "error");
       return;
     }
 
+    const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+
+    // Validate date - ensure it's today or a previous date
+    if (date > today) {
+      Swal.fire(
+        "Error",
+        "Please select today's date or a previous date.",
+        "error"
+      );
+      return;
+    }
+
     try {
       const payload = {
-        userId: selectedUser._id, // Use selectedUser's _id
+        userId: selectedUser._id,
         testType,
         testName,
         result,
         date,
-        comments, // Include comments in the payload
+        comments: reportData.comments, // Include comments, which can be optional
       };
 
       const response = await axios.post(
-        `${serverUrl}/auth/addrecord`, // Ensure this endpoint is correct
+        `${serverUrl}/auth/addrecord`,
         payload,
         {
           headers: {
@@ -226,8 +237,6 @@ const PatientAddReport = () => {
       if (response.status === 201) {
         Swal.fire("Success", "Patient report added successfully!", "success");
         closeModal();
-        // Optionally, refresh the users or reports list here
-        // Example: fetchUsersWithImages(); if you refactor it outside useEffect
       } else {
         Swal.fire(
           "Error",
@@ -247,14 +256,18 @@ const PatientAddReport = () => {
 
   return (
     <AdminLayout>
-      <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+      <div className="bg-white p-6 rounded-lg shadow-md mx-1 my-2 h-full">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <div className="mb-4 md:mb-0">
             <h2 className="text-2xl font-semibold flex items-center">
-              <FaHospitalAlt className="mr-2 text-blue-600" /> All Customers
+              <FaHospitalAlt className="mr-2 text-blue-600" /> Add Patient
+              Report
             </h2>
-            <p className="text-gray-600">Manage your hospital customers</p>
+            <p className="text-gray-600">
+              {" "}
+              Manage your hospital patients' records
+            </p>
           </div>
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search Bar */}
@@ -373,7 +386,7 @@ const PatientAddReport = () => {
           isOpen={isModalOpen}
           onRequestClose={closeModal}
           contentLabel="Add Report Modal"
-          className="bg-white rounded-lg max-w-lg mx-auto p-6 relative shadow-lg transform transition-all duration-300"
+          className="bg-white rounded-lg max-w-2xl w-full mx-auto p-6 relative shadow-lg transform transition-all duration-300"
           overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
           {/* Close Button */}
@@ -480,7 +493,7 @@ const PatientAddReport = () => {
                 htmlFor="comments"
                 className="block text-gray-700 font-medium mb-2"
               >
-                Comments <span className="text-gray-500">(Optional)</span>
+                Comments (Optional)
               </label>
               <textarea
                 id="comments"
@@ -488,9 +501,8 @@ const PatientAddReport = () => {
                 value={reportData.comments}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter any additional comments or observations..."
-                rows="4"
-              ></textarea>
+                placeholder="Any additional notes"
+              />
             </div>
 
             {/* Form Buttons */}

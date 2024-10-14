@@ -1,13 +1,14 @@
-// src/components/Admin/UserTestRecords.jsx
+// src/components/Admin/UserTestRecords.js
 
 import React, { useEffect, useState } from "react";
-import AdminLayout from "../../../Layouts/AdminLayout"; // Ensure the path is correct
+import AdminLayout from "../../../Layouts/AdminLayout";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { FaEye, FaEdit, FaTrash } from "react-icons/fa"; // Import eye, edit, and trash icons
+import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import Modal from "react-modal";
-import { useAuthContext } from "../../../../hooks/useAuthContext"; // Ensure this hook exists and provides the user context
-import proImg from "../../../../assets/images/9434619.jpg"; // Ensure the path is correct
+import { useAuthContext } from "../../../../hooks/useAuthContext";
+import proImg from "../../../../assets/images/9434619.jpg";
+import { FaPlus, FaHospitalAlt } from "react-icons/fa";
 
 Modal.setAppElement("#root");
 
@@ -17,7 +18,7 @@ const UserTestRecords = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [currentRecord, setCurrentRecord] = useState(null); // Track the current record for editing
+  const [currentRecord, setCurrentRecord] = useState(null);
   const [formData, setFormData] = useState({
     testType: "",
     testName: "",
@@ -63,7 +64,7 @@ const UserTestRecords = () => {
                   {
                     responseType: "arraybuffer",
                     headers: {
-                      Authorization: `Bearer ${user.token}`, // Include auth header if required
+                      Authorization: `Bearer ${user.token}`, // Include auth header
                     },
                   }
                 );
@@ -165,8 +166,30 @@ const UserTestRecords = () => {
   };
 
   // Handle submit edit
+  // ... (imports and initial component code)
+
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
+
+    // Validate the form fields
+    const { testType, testName, result, date } = formData;
+
+    // Check if any field is empty
+    if (!testType || !testName || !result || !date) {
+      Swal.fire("Error", "All fields are required.", "error");
+      return;
+    }
+
+    // Check if date is valid
+    const selectedDate = new Date(date);
+    const today = new Date();
+
+    // Date validation
+    if (selectedDate > today) {
+      Swal.fire("Error", "The date cannot be in the future.", "error");
+      return;
+    }
+
     try {
       await axios.put(
         `${serverUrl}/auth/updaterecord/${currentRecord._id}`,
@@ -186,11 +209,13 @@ const UserTestRecords = () => {
 
   return (
     <AdminLayout>
-      <div className="bg-white p-6 rounded-lg shadow-md mt-6">
+      <div className="bg-white p-6 rounded-lg shadow-md mx-1 my-2 h-full">
         {/* Header Section */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-semibold">All Users</h2>
-          <p className="text-gray-600">View user test records</p>
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold flex items-center">
+            <FaHospitalAlt className="mr-2 text-blue-600" /> View Patient Report
+          </h2>
+          Manage your hospital patients' Reports
         </div>
 
         {/* Users Table */}
@@ -198,8 +223,8 @@ const UserTestRecords = () => {
           <table className="min-w-full bg-white rounded-lg overflow-hidden">
             <thead>
               <tr className="bg-blue-100 text-gray-700 uppercase text-sm leading-normal">
-                <th className="py-3 px-6 text-left">Image</th>
                 <th className="py-3 px-6 text-left">ID</th>
+                <th className="py-3 px-6 text-left">Profile</th>
                 <th className="py-3 px-6 text-left">Name</th>
                 <th className="py-3 px-6 text-left">Email</th>
                 <th className="py-3 px-6 text-left">Phone</th>
@@ -214,6 +239,10 @@ const UserTestRecords = () => {
                   className="border-b border-gray-200 hover:bg-blue-50"
                 >
                   <td className="py-3 px-6 text-left">
+                    <span>{user._id}</span>
+                  </td>
+
+                  <td className="py-3 px-6 text-left">
                     <img
                       src={
                         user.profileImageData
@@ -227,9 +256,6 @@ const UserTestRecords = () => {
                         e.target.src = "https://via.placeholder.com/40";
                       }}
                     />
-                  </td>
-                  <td className="py-3 px-6 text-left">
-                    <span>{user._id}</span>
                   </td>
                   <td className="py-3 px-6 text-left">
                     <span className="font-medium">{user.username}</span>
@@ -272,7 +298,7 @@ const UserTestRecords = () => {
           isOpen={isModalOpen}
           onRequestClose={closeModal}
           contentLabel="View Test Records Modal"
-          className="bg-white rounded-lg max-w-lg mx-auto p-6 relative shadow-lg transform transition-all duration-300"
+          className="bg-white rounded-lg w-full max-w-4xl mx-auto p-6 relative shadow-lg transform transition-all duration-300"
           overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
           {/* Close Button */}
@@ -349,7 +375,7 @@ const UserTestRecords = () => {
           isOpen={editModalOpen}
           onRequestClose={() => setEditModalOpen(false)}
           contentLabel="Edit Test Record Modal"
-          className="bg-white rounded-lg max-w-lg mx-auto p-6 relative shadow-lg transform transition-all duration-300"
+          className="bg-white rounded-lg w-min-lg mx-auto p-6  px-5 relative shadow-lg transform transition-all duration-300"
           overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
         >
           <button

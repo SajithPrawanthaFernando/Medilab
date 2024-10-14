@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom"; // Import useHistory hook
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Header from "../common/Header";
 import Footer from "../common/Footer";
 import proImg from "../../assets/images/9434619.jpg";

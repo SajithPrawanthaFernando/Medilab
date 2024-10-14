@@ -1,7 +1,7 @@
 import "./App.css";
 import { useAuthContext } from "../src/hooks/useAuthContext";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import axios from "axios"; // Import Axios
+import axios from "axios";
 
 import Header from "./components/common/Header";
 import Footer from "./components/common/Footer";

@@ -1,9 +1,9 @@
-// src/pages/Register.jsx
+// src/pages/Register.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuthContext } from "../hooks/useAuthContext";
-import RegisterImg from "../assets/images/login.png"; // Adjust the path if necessary
+import RegisterImg from "../assets/images/login.png";
 
 const Register = () => {
   const [username, setUsername] = useState("");

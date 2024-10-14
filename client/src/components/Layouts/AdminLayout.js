@@ -38,7 +38,7 @@ const AdminLayout = ({ children }) => {
       <div
         className={`fixed inset-y-0 left-0 transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 transition-transform duration-200 ease-in-out bg-white w-64 shadow-lg z-30`}
+        } md:translate-x-0 transition-transform duration-200 ease-in-out bg-white w-64 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)]  z-30`}
       >
         <Link to="/">
           <div className="flex items-center justify-center h-16 shadow-md cursor-pointer">
@@ -51,11 +51,11 @@ const AdminLayout = ({ children }) => {
             <li>
               <Link
                 to="/admin"
-                className={`flex items-center py-2 px-6 text-gray-700 hover:bg-gray-200 ${
-                  isActive("/admin") ? "bg-gray-200 font-semibold" : ""
+                className={`flex items-center py-2 px-6 text-gray-700 hover:bg-blue-100 rounded-lg transition duration-200 ${
+                  isActive("/admin") ? "bg-blue-100 font-semibold" : ""
                 }`}
               >
-                <FaTachometerAlt className="mr-3" />
+                <FaTachometerAlt className="mr-3 text-blue-600" />
                 Dashboard
               </Link>
             </li>
@@ -64,27 +64,27 @@ const AdminLayout = ({ children }) => {
             <li>
               <button
                 onClick={toggleCustomers}
-                className={`flex items-center justify-between w-full py-2 px-6 text-gray-700 hover:bg-gray-200 focus:outline-none ${
+                className={`flex items-center justify-between w-full py-2 px-6 text-gray-700 hover:bg-blue-100 rounded-lg focus:outline-none transition duration-200 ${
                   isSubActive(["/admin/customers", "/admin/feedbackmanagement"])
-                    ? "bg-gray-200 font-semibold"
+                    ? "bg-blue-100 font-semibold"
                     : ""
                 }`}
               >
                 <div className="flex items-center">
-                  <FaUsers className="mr-3" />
+                  <FaUsers className="mr-3 text-blue-600" />
                   Patients
                 </div>
                 {isCustomersOpen ? <FaChevronUp /> : <FaChevronDown />}
               </button>
               {/* Submenu */}
               {isCustomersOpen && (
-                <ul className="ml-12">
+                <ul className="ml-4">
                   <li>
                     <Link
                       to="/admin/customers"
-                      className={`block py-2 px-6 text-gray-600 hover:bg-gray-200 rounded ${
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
                         isActive("/admin/customers")
-                          ? "bg-gray-200 font-semibold"
+                          ? "bg-blue-100 font-semibold"
                           : ""
                       }`}
                     >
@@ -94,63 +94,61 @@ const AdminLayout = ({ children }) => {
                   <li>
                     <Link
                       to="/admin/feedbackmanagement"
-                      className={`block py-2 px-6 text-gray-600 hover:bg-gray-200 rounded ${
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
                         isActive("/admin/feedbackmanagement")
-                          ? "bg-gray-200 font-semibold"
+                          ? "bg-blue-100 font-semibold"
                           : ""
                       }`}
                     >
                       Feedbacks
                     </Link>
                   </li>
-
                   <li>
                     <Link
                       to="/admin/patientaddreport"
-                      className={`block py-2 px-6 text-gray-600 hover:bg-gray-200 rounded ${
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
                         isActive("/admin/patientaddreport")
-                          ? "bg-gray-200 font-semibold"
+                          ? "bg-blue-100 font-semibold"
                           : ""
                       }`}
                     >
-                      Add Patient report
+                      Add Patient Report
                     </Link>
                   </li>
                   <li>
                     <Link
                       to="/admin/viewreport"
-                      className={`block py-2 px-6 text-gray-600 hover:bg-gray-200 rounded ${
-                        isActive("/admin/patientaddreport")
-                          ? "bg-gray-200 font-semibold"
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
+                        isActive("/admin/viewreport")
+                          ? "bg-blue-100 font-semibold"
                           : ""
                       }`}
                     >
-                      View Patient report
+                      View Patient Report
                     </Link>
                   </li>
-
                   <li>
                     <Link
                       to="/admin/addtreatment"
-                      className={`block py-2 px-6 text-gray-600 hover:bg-gray-200 rounded ${
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
                         isActive("/admin/addtreatment")
-                          ? "bg-gray-200 font-semibold"
+                          ? "bg-blue-100 font-semibold"
                           : ""
                       }`}
                     >
-                      Add Treatment report
+                      Add Treatment Report
                     </Link>
                   </li>
                   <li>
                     <Link
                       to="/admin/viewtreatment"
-                      className={`block py-2 px-6 text-gray-600 hover:bg-gray-200 rounded ${
-                        isActive("/admin/addtreatment")
-                          ? "bg-gray-200 font-semibold"
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
+                        isActive("/admin/viewtreatment")
+                          ? "bg-blue-100 font-semibold"
                           : ""
                       }`}
                     >
-                      View Treatment report
+                      View Treatment Report
                     </Link>
                   </li>
                 </ul>
@@ -189,14 +187,11 @@ const AdminLayout = ({ children }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-0 md:ml-64">
-        {/* Header */}
-        <header className="bg-white shadow-md p-4">
-          <h1 className="text-xl font-semibold text-gray-700">Dashboard</h1>
-        </header>
-
+      <div className="flex-1 flex flex-col ml-0  md:ml-64 h-full">
         {/* Content */}
-        <main className="flex-1 p-6 overflow-auto">{children}</main>
+        <main className="flex-1 px-2 overflow-auto  w-full h-full mt-0">
+          {children}
+        </main>
       </div>
     </div>
   );

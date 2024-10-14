@@ -22,7 +22,7 @@ const router = express.Router();
 
 router.get("/images/:imageName", (req, res) => {
   const imageName = req.params.imageName;
-  const imagePath = path.join("C:/images", imageName); // Construct absolute path to the image
+  const imagePath = path.join("D:/images", imageName); // Construct absolute path to the image
   // Check if the file exists
   fs.access(imagePath, fs.constants.F_OK, (err) => {
     if (err) {
@@ -469,12 +469,6 @@ router.post("/addrecord", async (req, res) => {
     if (!userId || !testType || !testName || !result || !comments) {
       return res.status(400).json({ message: "All fields are required." });
     }
-
-    // Optional: Validate if user exists
-    // const user = await User.findById(userId);
-    // if (!user) {
-    //   return res.status(404).json({ message: "User not found." });
-    // }
 
     // Create new TestRecord
     const newTestRecord = new TestRecord({

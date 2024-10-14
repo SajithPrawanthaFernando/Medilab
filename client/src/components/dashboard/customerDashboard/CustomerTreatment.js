@@ -3,7 +3,7 @@ import CustomerLayout from "../../Layouts/CustomerLayout";
 import axios from "axios";
 import { useAuthContext } from "../../../hooks/useAuthContext";
 import Swal from "sweetalert2";
-import { FaFilter, FaHospitalAlt, FaTimes, FaSearch } from "react-icons/fa"; // Updated icon
+import { FaFilter, FaHospitalAlt, FaTimes, FaSearch } from "react-icons/fa";
 import FocusLock from "react-focus-lock";
 import Logo from "../../../assets/images/logo.png";
 
@@ -167,7 +167,7 @@ const CustomerTreatment = () => {
           {filteredTreatments.map((treatment) => (
             <div
               key={treatment._id}
-              className="bg-white border rounded-lg shadow p-4 cursor-pointer hover:shadow-lg transition"
+              className="bg-white border border-1 border-b-[0_2px_12px_-4px_rgba(6,81,237,0.3)] rounded-lg shadow-[0_2px_12px_-4px_rgba(6,81,237,0.3)] p-4 cursor-pointer hover:shadow-lg transition"
               onClick={() => handleCardClick(treatment)}
             >
               <h3 className="text-lg font-semibold flex items-center">
@@ -242,8 +242,9 @@ const CustomerTreatment = () => {
                     className="mx-auto h-12"
                   />
                   <p className="text-sm text-gray-600 mt-2">
-                    XYZ Hospital, 1234 Medical Ave, City, Country
+                    123 Medical Street, City, Country
                   </p>
+                  <p className="text-gray-600">Phone: (123) 456-7890</p>
                 </div>
 
                 {/* Modal Header */}
@@ -344,7 +345,6 @@ const CustomerTreatment = () => {
         {loading && (
           <div className="flex items-center justify-center py-6">
             <span className="loader"></span>{" "}
-            {/* Add your loading spinner or animation */}
           </div>
         )}
 
