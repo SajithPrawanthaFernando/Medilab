@@ -141,9 +141,11 @@ const CustomerLayout = ({ children }) => {
                 )}
                 <li>
                   <Link
-                    to="/user/orders"
+                    to="/user/customerrecords"
                     className={`flex items-center p-2 text-gray-700 rounded hover:bg-gray-200 ${
-                      location.pathname === "/user/orders" ? "bg-gray-200" : ""
+                      location.pathname === "/user/customerrecords"
+                        ? "bg-gray-200"
+                        : ""
                     }`}
                   >
                     <FontAwesomeIcon icon={faHistory} className="mr-2" />
@@ -152,9 +154,9 @@ const CustomerLayout = ({ children }) => {
                 </li>
                 <li>
                   <Link
-                    to="/user/wishlist"
+                    to="/user/customertreatment"
                     className={`flex items-center p-2 text-gray-700 rounded hover:bg-gray-200 ${
-                      location.pathname === "/user/wishlist"
+                      location.pathname === "/user/customertreatment"
                         ? "bg-gray-200"
                         : ""
                     }`}

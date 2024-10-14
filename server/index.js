@@ -1,10 +1,9 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const userrouter = require("./routes/customerRoutes");
-const multer = require("multer");
+const db = require("./databse"); // Ensure this is the correct path
 
 dotenv.config();
 const app = express();
@@ -16,34 +15,35 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use("/auth", userrouter);
 
 // Import routes
-const customerRoutes = require("./routes/customerRoutes");
-
-// Stripe Routes
 const StripeRoutes = require("./routes/stripe-route");
 
-// Connect to MongoDB Atlas
-const uri =
-  "mongodb+srv://sajithprawanthafernando:mysecrettoken@weatherapi.vla2gns.mongodb.net/HospitalManagement";
-mongoose
-  .connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    dbName: "HospitalManagement",
-  })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection error:", err));
+// Connect to MongoDB using the Singleton instance
+const startServer = async () => {
+  try {
+    await db.connect(); // Use the Singleton instance to connect to the database
+    console.log("MongoDB connection established successfully.");
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    process.exit(1); // Exit the process if connection fails
+  }
 
-// Routes
-app.use("/auth", userrouter);
-// app.use('/customers', customerRoutes);
+  // Set up routes
+  app.use("/auth", userrouter);
+  app.use("/api/stripe", StripeRoutes);
 
-// Stripe Api
-app.use("./api/stripe", StripeRoutes);
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+};
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Something broke!");
 });
+
+// Start the server
+startServer();
