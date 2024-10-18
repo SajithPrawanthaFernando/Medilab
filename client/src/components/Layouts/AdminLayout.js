@@ -154,6 +154,18 @@ const AdminLayout = ({ children }) => {
                 </ul>
               )}
             </li>
+            <li>
+              <Link
+                to="/admin/GenerateReport"
+                className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
+                  isActive("/admin/viewtreatment")
+                    ? "bg-blue-100 font-semibold"
+                    : ""
+                }`}
+              >
+                Generate Report
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>

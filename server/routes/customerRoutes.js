@@ -601,4 +601,54 @@ router.delete("/deletetreatment/:id", async (req, res) => {
   }
 });
 
+// Get peak test record dates for all users
+router.get("/peaktestdates", async (req, res) => {
+  try {
+    const peakTestDates = await TestRecord.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+    ]);
+
+    if (peakTestDates.length === 0) {
+      return res.status(404).json({ message: "No peak test dates found." });
+    }
+
+    res.json(peakTestDates);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get peak treatment record dates for all users
+router.get("/peaktreatmentdates", async (req, res) => {
+  try {
+    const peakTreatmentDates = await TreatmentRecord.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$beginDate" } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+    ]);
+
+    if (peakTreatmentDates.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No peak treatment dates found." });
+    }
+
+    res.json(peakTreatmentDates);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

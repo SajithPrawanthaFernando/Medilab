@@ -6,6 +6,7 @@ import CustomerNotification from "../dashboard/customerDashboard/CustomerNotific
 import FeedbackForm from "../dashboard/customerDashboard/FeedbackForm";
 import CustomerRecord from "../dashboard/customerDashboard/CustomerRecord";
 import CustomerTreatment from "../dashboard/customerDashboard/CustomerTreatment";
+import CustomerDigitalCard from "../dashboard/customerDashboard/CustomerDigitalCard";
 
 const CustomerRoutes = () => {
   return (
@@ -16,6 +17,7 @@ const CustomerRoutes = () => {
       <Route path="/updatepassword/:email" element={<ChangePassword />} />
       <Route path="/notifi/:email" element={<CustomerNotification />} />
       <Route path="/feedback/:email" element={<FeedbackForm />} />
+      <Route path="/digitalcard" element={<CustomerDigitalCard />} />
     </Routes>
   );
 };

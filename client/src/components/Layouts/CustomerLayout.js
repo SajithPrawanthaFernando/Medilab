@@ -15,6 +15,7 @@ import {
   faLock,
   faTrash,
   faSignOutAlt,
+  faIdCard,
 } from "@fortawesome/free-solid-svg-icons";
 
 const CustomerLayout = ({ children }) => {
@@ -163,6 +164,19 @@ const CustomerLayout = ({ children }) => {
                   >
                     <FontAwesomeIcon icon={faHeart} className="mr-2" />
                     Treatment History
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/user/digitalcard"
+                    className={`flex items-center p-2 text-gray-700 rounded hover:bg-gray-200 ${
+                      location.pathname === "/user/digitalcard"
+                        ? "bg-gray-200"
+                        : ""
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faIdCard} className="mr-2" />
+                    Digital Card
                   </Link>
                 </li>
                 {user && (
