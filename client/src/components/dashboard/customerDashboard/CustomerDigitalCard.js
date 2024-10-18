@@ -6,6 +6,7 @@ import { useAuthContext } from "../../../hooks/useAuthContext"; // Import your a
 import proImg from "../../../assets/images/9434619.jpg"; // Default profile image
 import qrCodeImg from "../../../assets/images/qr.png"; // Mock QR code image
 import CustomerLayout from "../../Layouts/CustomerLayout";
+import Logo from "../../../assets/images/logo.png";
 
 const CustomerDigitalCard = () => {
   const { user } = useAuthContext(); // Get user info from auth context
@@ -127,11 +128,16 @@ const CustomerDigitalCard = () => {
               width: 80px;
               height: 80px;
             }
+            .logo {
+              width: 120px; /* Adjust as needed */
+              margin-bottom: 10px;
+            }
           </style>
         </head>
         <body>
           <div class="card">
-            <h2>Customer Digital Card</h2>
+            <img src="${Logo}" alt="Hospital Logo" class="logo" /></br>
+            
             <img src="${
               imageData ? `data:image/jpeg;base64,${imageData}` : proImg
             }" alt="${userr ? userr.username : "User"}" class="profile-img" />
@@ -154,10 +160,11 @@ const CustomerDigitalCard = () => {
     printWindow.document.write(printContent);
     printWindow.document.close();
 
-    setTimeout(() => {
+    // Wait for the print window to fully load before printing
+    printWindow.onload = () => {
       printWindow.print();
       printWindow.close(); // Close the print window after printing
-    }, 500);
+    };
   };
 
   // Show a loading message while fetching user data
@@ -192,11 +199,16 @@ const CustomerDigitalCard = () => {
           id="digitalCard"
           className="flex flex-col items-center p-6 bg-white rounded-lg shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] border-1 border-b-[0_2px_10px_-3px_rgba(6,81,237,0.3)] max-w-md mx-auto mt-6"
         >
+          <img
+            src={Logo} // Replace with the path to your hospital logo
+            alt="Hospital Logo"
+            className="mx-auto h-12 mb-3"
+          />
           <div className="flex flex-col items-center mb-4">
             <img
               src={imageData ? `data:image/jpeg;base64,${imageData}` : proImg}
               alt="Profile"
-              className="w-32 h-32 rounded-full cursor-pointer border-2 border-blue-500"
+              className="w-25 h-25 rounded-full cursor-pointer border-2 border-blue-500"
             />
             <h3 className="text-xl font-semibold">{userr.username}</h3>
             <p className="text-gray-600">{userr.email}</p>
