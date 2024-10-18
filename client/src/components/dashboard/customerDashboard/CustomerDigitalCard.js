@@ -1,10 +1,10 @@
 // src/components/Customer/CustomerDigitalCard.js
 
 import React, { useState, useEffect } from "react";
-import Axios from "axios"; // Ensure Axios is imported
-import { useAuthContext } from "../../../hooks/useAuthContext"; // Import your auth context hook
-import proImg from "../../../assets/images/9434619.jpg"; // Default profile image
-import qrCodeImg from "../../../assets/images/qr.png"; // Mock QR code image
+import Axios from "axios";
+import { useAuthContext } from "../../../hooks/useAuthContext";
+import proImg from "../../../assets/images/9434619.jpg";
+import qrCodeImg from "../../../assets/images/qr.png";
 import CustomerLayout from "../../Layouts/CustomerLayout";
 import Logo from "../../../assets/images/logo.png";
 
@@ -199,11 +199,7 @@ const CustomerDigitalCard = () => {
           id="digitalCard"
           className="flex flex-col items-center p-6 bg-white rounded-lg shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] border-1 border-b-[0_2px_10px_-3px_rgba(6,81,237,0.3)] max-w-md mx-auto mt-6"
         >
-          <img
-            src={Logo} // Replace with the path to your hospital logo
-            alt="Hospital Logo"
-            className="mx-auto h-12 mb-3"
-          />
+          <img src={Logo} alt="Hospital Logo" className="mx-auto h-12 mb-3" />
           <div className="flex flex-col items-center mb-4">
             <img
               src={imageData ? `data:image/jpeg;base64,${imageData}` : proImg}
