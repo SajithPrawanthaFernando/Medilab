@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; 
 import CustomerLayout from '../../Layouts/CustomerLayout';
 import { useAuthContext } from '../../../hooks/useAuthContext';
-import { useNavigate } from 'react-router-dom'; 
+
 const DoctorAppointment = () => {
     const [doctors, setDoctors] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,6 +16,7 @@ const DoctorAppointment = () => {
     const [userDetails, setUserDetails] = useState({ name: '', contact: '' });
     const { user } = useAuthContext();
     const navigate = useNavigate();
+
     // Fetch all doctors on component mount
     useEffect(() => {
         const fetchDoctors = async () => {
@@ -76,7 +77,7 @@ const DoctorAppointment = () => {
         };
 
         try {
-            const response = await axios.post('http://localhost:5000/api/appointments',appointmentData);
+            const response = await axios.post('http://localhost:5000/api/appointments', appointmentData);
 
             if (response.status === 201) {
                 Swal.fire({
@@ -85,7 +86,6 @@ const DoctorAppointment = () => {
                     text: `Appointment booked successfully with Dr. ${selectedDoctor.name}!`,
                 });
                 resetAppointment();
-               
             }
         } catch (error) {
             console.error('Error booking appointment:', error);
@@ -102,7 +102,6 @@ const DoctorAppointment = () => {
         setAppointmentDate('');
         setAppointmentTime('');
         setUserDetails({ name: '', contact: '' });
-      
     };
 
     const isWithinVisibilityPeriod = (date, time) => {
@@ -123,91 +122,114 @@ const DoctorAppointment = () => {
         );
     };
 
+    const getDisabledDates = () => {
+        if (!selectedDoctor) return [];
+
+        const disabledDates = [];
+        const startDate = new Date(selectedDoctor.visibilityStartDate);
+        const endDate = new Date(selectedDoctor.visibilityEndDate);
+        let currentDate = new Date(startDate);
+
+        // Push unavailable dates within the doctor's visibility period
+        while (currentDate <= endDate) {
+            disabledDates.push(currentDate.toISOString().split('T')[0]);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        // Disable today and past dates
+        const today = new Date();
+        disabledDates.push(today.toISOString().split('T')[0]); // Add today to disabled dates
+        for (let i = 1; i <= today.getDate(); i++) {
+            const pastDate = new Date();
+            pastDate.setDate(today.getDate() - i);
+            disabledDates.push(pastDate.toISOString().split('T')[0]); // Add past dates
+        }
+
+        return disabledDates;
+    };
+
     return (
         <CustomerLayout>
             <div className="container mx-auto px-4 py-8">
                 <h2 className="text-2xl font-semibold mb-6">Doctor List</h2>
-                
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full bg-white border rounded-lg shadow-md">
-                            <thead>
-                                <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-                                    <th className="py-3 px-6 text-left">Name</th>
-                                    <th className="py-3 px-6 text-left">Specialization</th>
-                                    <th className="py-3 px-6 text-left">Fee</th>
-                                    <th className="py-3 px-6 text-left">Available Date</th>
-                                    <th className="py-3 px-6 text-left">Available Time</th>
-                                    <th className="py-3 px-6 text-center">Action</th>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full bg-white border rounded-lg shadow-md">
+                        <thead>
+                            <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                                <th className="py-3 px-6 text-left">Name</th>
+                                <th className="py-3 px-6 text-left">Specialization</th>
+                                <th className="py-3 px-6 text-left">Fee</th>
+                                <th className="py-3 px-6 text-left">Available Date</th>
+                                <th className="py-3 px-6 text-left">Available Time</th>
+                                <th className="py-3 px-6 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-gray-600 text-sm font-light">
+                            {doctors.map((doctor) => (
+                                <tr key={doctor._id} className="border-b border-gray-200 hover:bg-gray-100">
+                                    <td className="py-3 px-6">{doctor.name}</td>
+                                    <td className="py-3 px-6">{doctor.specialization}</td>
+                                    <td className="py-3 px-6">${doctor.consultantFee}</td>
+                                    <td className="py-3 px-6">
+                                        {doctor.visibilityStartDate
+                                            ? new Date(doctor.visibilityStartDate).toLocaleDateString()
+                                            : 'N/A'} - <br />
+                                        {doctor.visibilityEndDate
+                                            ? new Date(doctor.visibilityEndDate).toLocaleDateString()
+                                            : 'N/A'}
+                                    </td>
+                                    <td className="py-3 px-6">
+                                        {doctor.visibilityStartTime || 'N/A'} - {doctor.visibilityEndTime || 'N/A'}
+                                    </td>
+                                    <td className="py-3 px-6 text-center">
+                                        <button
+                                            className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded"
+                                            onClick={() => {
+                                                setSelectedDoctor(doctor);
+                                                setIsBooking(true);
+                                            }}
+                                            disabled={
+                                                !doctor.visibilityStartDate ||
+                                                !doctor.visibilityEndDate ||
+                                                !doctor.visibilityStartTime ||
+                                                !doctor.visibilityEndTime
+                                            }
+                                        >
+                                            Book
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody className="text-gray-600 text-sm font-light">
-                                {doctors.map((doctor) => (
-                                    <tr key={doctor._id} className="border-b border-gray-200 hover:bg-gray-100">
-                                        <td className="py-3 px-6">{doctor.name}</td>
-                                        <td className="py-3 px-6">{doctor.specialization}</td>
-                                        <td className="py-3 px-6">${doctor.consultantFee}</td>
-                                        <td className="py-3 px-6">
-                                            {doctor.visibilityStartDate
-                                                ? new Date(doctor.visibilityStartDate).toLocaleDateString()
-                                                : 'N/A'} - <br />
-                                            {doctor.visibilityEndDate
-                                                ? new Date(doctor.visibilityEndDate).toLocaleDateString()
-                                                : 'N/A'}
-                                        </td>
-                                        <td className="py-3 px-6">
-                                            {doctor.visibilityStartTime || 'N/A'} - {doctor.visibilityEndTime || 'N/A'}
-                                        </td>
-                                        <td className="py-3 px-6 text-center">
-                                            <button
-                                                className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded"
-                                                onClick={() => {
-                                                    setSelectedDoctor(doctor);
-                                                    setIsBooking(true);
-                                                }}
-                                                disabled={
-                                                    !doctor.visibilityStartDate ||
-                                                    !doctor.visibilityEndDate ||
-                                                    !doctor.visibilityStartTime ||
-                                                    !doctor.visibilityEndTime
-                                                }
-                                            >
-                                                Book
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-             
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
                 {isBooking && (
                     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                        <div className="bg-white p-8 rounded-lg shadow-lg">
+                        <div className="bg-white p-10 rounded-lg shadow-lg w-1/2">
                             <h2 className="text-2xl mb-4">Book Appointment</h2>
                             <div className="mb-4">
                                 <label className="block mb-2">Select Date</label>
                                 <input
-    type="date"
-    value={appointmentDate}
-    onChange={(e) => setAppointmentDate(e.target.value)}
-    className="border border-gray-300 p-2 rounded w-full"
-    min={new Date().toISOString().split("T")[0]} // Prevent past dates
-    required
-/>
-<div className="mb-4">
-                                <label className="block mb-2">Select Time</label>
-<input
-    type="time"
-    value={appointmentTime}
-    onChange={(e) => setAppointmentTime(e.target.value)}
-    className="border border-gray-300 p-2 rounded w-full"
-    required
-/>
-</div>
-
+                                    type="date"
+                                    value={appointmentDate}
+                                    onChange={(e) => setAppointmentDate(e.target.value)}
+                                    className="border border-gray-300 p-2 rounded w-full"
+                                    min={new Date().toISOString().split("T")[0]} // Prevent past dates
+                                    required
+                                    disabled={getDisabledDates().includes(appointmentDate)} // Disable the date if it's unavailable
+                                />
                             </div>
-                            
+                            <div className="mb-4">
+                                <label className="block mb-2">Select Time</label>
+                                <input
+                                    type="time"
+                                    value={appointmentTime}
+                                    onChange={(e) => setAppointmentTime(e.target.value)}
+                                    className="border border-gray-300 p-2 rounded w-full"
+                                    required
+                                />
+                            </div>
                             <div className="mb-4">
                                 <label className="block mb-2">Your Name</label>
                                 <input
@@ -228,20 +250,18 @@ const DoctorAppointment = () => {
                                     required
                                 />
                             </div>
-                            <div className="flex justify-end">
-                                <button
-                                    onClick={handleBookAppointment}
-                                    className="bg-blue-500 hover:bg-blue-700 text-white py-2 px-4 rounded mr-2"
-                                >
-                                    Confirm
-                                </button>
-                                <button
-                                    onClick={resetAppointment}
-                                    className="bg-gray-300 hover:bg-gray-500 text-black py-2 px-4 rounded"
-                                >
-                                    Cancel
-                                </button>
-                            </div>
+                            <button
+                                className="bg-green-500 hover:bg-green-700 text-white py-2 px-4 rounded"
+                                onClick={handleBookAppointment}
+                            >
+                                Confirm Appointment
+                            </button>
+                            <button
+                                className="bg-red-500 hover:bg-red-700 text-white py-2 px-4 rounded ml-4"
+                                onClick={() => resetAppointment()}
+                            >
+                                Cancel
+                            </button>
                         </div>
                     </div>
                 )}
