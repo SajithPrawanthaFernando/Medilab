@@ -153,6 +153,27 @@ const AdminLayout = ({ children }) => {
                       View Treatment report
                     </Link>
                   </li>
+                  <li>
+  <Link
+    to="/admin/doctors"
+    className={`flex items-center py-2 px-6 text-gray-700 hover:bg-gray-200 ${
+      isActive("/admin/doctor") ? "bg-gray-200 font-semibold" : ""
+    }`}
+  >
+    <FaUsers className="mr-3" />
+    Doctor
+  </Link>
+</li><li>
+  <Link
+    to="/admin/appoinmentdash"
+    className={`flex items-center py-2 px-6 text-gray-700 hover:bg-gray-200 ${
+      isActive("/admin/appoinmentdash") ? "bg-gray-200 font-semibold" : ""
+    }`}
+  >
+    <FaUsers className="mr-3" />
+    Appointment
+  </Link>
+</li>
                 </ul>
               )}
             </li>
