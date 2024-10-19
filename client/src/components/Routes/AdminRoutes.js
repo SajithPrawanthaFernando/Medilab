@@ -8,7 +8,8 @@ import PatientAddReport from "../dashboard/adminDashboard/customers/PatientAddRe
 import UserTestRecords from "../dashboard/adminDashboard/customers/UserTestRecords";
 import AddTreatment from "../dashboard/adminDashboard/customers/AddTreatment";
 import UserTreatmentRecords from "../dashboard/adminDashboard/customers/UserTreatmentRecords";
-
+import DoctorDashboard from "../dashboard/adminDashboard/doctor/DoctorDashboard";
+import AppointmentDashboard from "../dashboard/adminDashboard/doctor/AppoinmentDashboard";
 const AdminRoutes = () => {
   return (
     <Routes>
@@ -22,6 +23,8 @@ const AdminRoutes = () => {
       <Route path="/viewreport" element={<UserTestRecords />} />
       <Route path="/addtreatment" element={<AddTreatment />} />
       <Route path="/viewtreatment" element={<UserTreatmentRecords />} />
+      <Route path="/doctors" element={<DoctorDashboard />} />
+      <Route path="/appoinmentdash" element={<AppointmentDashboard />} />
     </Routes>
   );
 };

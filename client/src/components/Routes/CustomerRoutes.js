@@ -6,7 +6,7 @@ import ChangePassword from "../dashboard/customerDashboard/ChangePassword";
 import CustomerNotification from "../dashboard/customerDashboard/CustomerNotification"; // Import NotificationPage component
 import FeedbackForm from "../dashboard/customerDashboard/FeedbackForm";
 import UpdateOrder from "../dashboard/customerDashboard/UpdateOrder";
-
+import BookingMessages from "../dashboard/customerDashboard/BookingCMessages";
 const CustomerRoutes = () => {
     return (
         <Routes>
@@ -18,6 +18,7 @@ const CustomerRoutes = () => {
             <Route path="/updatepassword/:email" element={<ChangePassword />} />
             <Route path="/notifi/:email" element={<CustomerNotification />} />
             <Route path="/feedback/:email" element={<FeedbackForm />} />
+            <Route path="/appoinmentsmessages" element={<BookingMessages />} />
         </Routes>
     )
 }
