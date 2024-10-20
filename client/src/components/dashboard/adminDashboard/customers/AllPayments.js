@@ -1,22 +1,27 @@
-// src/components/Admin/Payments.js
-
+// External libraries
 import React, { useEffect, useState } from "react";
-import AdminLayout from "../../../Layouts/AdminLayout";
-import PaymentService from "../../../../services/PaymentService";
 import * as XLSX from "xlsx";
-import { FaHospitalAlt } from "react-icons/fa";
-import { FaCheck, FaTimes } from "react-icons/fa";
 import axios from "axios";
 
+// Icons
+import { FaHospitalAlt, FaCheck, FaTimes } from "react-icons/fa";
+
+// Local components and services
+import AdminLayout from "../../../Layouts/AdminLayout";
+import PaymentService from "../../../../services/PaymentService";
+
 const AllPayments = () => {
+  // State variables
   const [payments, setPayments] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [userData, setUserData] = useState({});
   const [token, setToken] = useState("");
   const [paymentImages, setPaymentImages] = useState(new Map());
 
+  // Service instance
   const paymentService = PaymentService.getInstance();
 
+  // Fetch payments and users on component mount
   useEffect(() => {
     const fetchPayments = async () => {
       try {
@@ -31,6 +36,7 @@ const AllPayments = () => {
     fetchPayments();
   }, [paymentService, token]);
 
+  // Fetch payment images and user data
   const fetchPaymentImages = async (payments) => {
     const imagePromises = payments.map(async (payment) => {
       if (payment.paymentSlipFilename) {
@@ -61,6 +67,7 @@ const AllPayments = () => {
 
     setPaymentImages(imageMap);
   };
+  // Convert array buffer to base64
   const arrayBufferToBase64 = (buffer) => {
     let binary = "";
     const bytes = new Uint8Array(buffer);
@@ -69,6 +76,7 @@ const AllPayments = () => {
     }
     return btoa(binary);
   };
+  // Fetch users for payments
   const fetchUsersForPayments = async (payments) => {
     const emailSet = new Set(payments.map((payment) => payment.email));
     const userPromises = Array.from(emailSet).map((email) =>
@@ -92,6 +100,7 @@ const AllPayments = () => {
     }
   };
 
+  // Fetch all payments
   const fetchAllPayments = async () => {
     try {
       const result = await paymentService.fetchPayments(token);
@@ -102,6 +111,7 @@ const AllPayments = () => {
     }
   };
 
+  // Fetch token from local storage
   const handleApprove = async (paymentId) => {
     try {
       await paymentService.updatePaymentStatusToApprove(paymentId, token);
@@ -112,6 +122,7 @@ const AllPayments = () => {
     }
   };
 
+  // Handle payment rejection
   const handleReject = async (paymentId) => {
     try {
       await paymentService.updatePaymentStatusToReject(paymentId, token);
@@ -122,6 +133,7 @@ const AllPayments = () => {
     }
   };
 
+  // Export to Excel
   const exportToExcel = () => {
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(payments);
@@ -129,11 +141,13 @@ const AllPayments = () => {
     XLSX.writeFile(workbook, "PaymentData.xlsx");
   };
 
+  // Filter payments based on search query
   const filteredPayments = payments.filter((payment) => {
     const searchLower = searchQuery.toLowerCase();
     return payment.doctor.toLowerCase().includes(searchLower); // Filter based on doctor name only
   });
 
+  // Handle image click
   const handleImageClick = (imageData) => {
     const newWindow = window.open();
     newWindow.document.write(

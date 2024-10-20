@@ -122,7 +122,7 @@ const DoctorDashboard = () => {
       visibilityEndTime: "",
     });
   };
-
+  const today = new Date().toISOString().split("T")[0];
   return (
     <AdminLayout>
       <div className="bg-white p-6 rounded-lg  mx-1 my-2 h-full  shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)]">
@@ -237,9 +237,13 @@ const DoctorDashboard = () => {
                       placeholder="Name"
                       className="block w-full mb-2 p-2 border rounded-md text-xs"
                       value={newDoctor.name}
-                      onChange={(e) =>
-                        setNewDoctor({ ...newDoctor, name: e.target.value })
-                      }
+                      onChange={(e) => {
+                        // Allow only letters and spaces
+                        const value = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                          setNewDoctor({ ...newDoctor, name: value });
+                        }
+                      }}
                       required
                     />
                   </div>
@@ -258,12 +262,16 @@ const DoctorDashboard = () => {
                       placeholder="Specialization"
                       className="block w-full mb-2 p-2 border rounded-md text-xs"
                       value={newDoctor.specialization}
-                      onChange={(e) =>
-                        setNewDoctor({
-                          ...newDoctor,
-                          specialization: e.target.value,
-                        })
-                      }
+                      onChange={(e) => {
+                        // Allow only letters and spaces
+                        const value = e.target.value;
+                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                          setNewDoctor({
+                            ...newDoctor,
+                            specialization: value,
+                          });
+                        }
+                      }}
                       required
                     />
                   </div>
@@ -278,7 +286,7 @@ const DoctorDashboard = () => {
                     </label>
                     <input
                       id="contact"
-                      type="text"
+                      type="number"
                       placeholder="Contact"
                       className="block w-full mb-2 p-2 border rounded-md text-xs"
                       value={newDoctor.contact}
@@ -345,8 +353,9 @@ const DoctorDashboard = () => {
                     <input
                       id="visibilityStartDate"
                       type="date"
-                      className="block w-full mb-2 p-2 border rounded-md text-xs"
-                      value={newDoctor.visibilityStartDate}
+                      className="block w-full p-2 border rounded-md text-xs"
+                      min={today} // Set minimum date to today
+                      value={newDoctor.visibilityStartDate || ""} // Handle undefined initial state
                       onChange={(e) =>
                         setNewDoctor({
                           ...newDoctor,
@@ -369,6 +378,7 @@ const DoctorDashboard = () => {
                       id="visibilityEndDate"
                       type="date"
                       className="block w-full mb-2 p-2 border rounded-md text-xs"
+                      min={today} // Set minimum date to today
                       value={newDoctor.visibilityEndDate}
                       onChange={(e) =>
                         setNewDoctor({
@@ -578,7 +588,8 @@ const DoctorDashboard = () => {
                     id="visibilityStartDate"
                     type="date"
                     className="block w-full p-2 border rounded-md text-xs"
-                    value={newDoctor.visibilityStartDate} // Ensure this is correctly set
+                    min={new Date().toISOString().split("T")[0]} // Freeze dates before today
+                    value={newDoctor.visibilityStartDate || ""} // Handle undefined initial state
                     onChange={(e) =>
                       setNewDoctor({
                         ...newDoctor,

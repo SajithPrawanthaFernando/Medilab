@@ -12,7 +12,7 @@ const doctorSchema = new mongoose.Schema(
       required: true,
     },
     contact: {
-      type: String,
+      type: Number,
       required: true,
     },
     status: {

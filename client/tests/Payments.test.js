@@ -98,7 +98,7 @@ describe("Payments Component", () => {
 
     // Fill out the card details
     fireEvent.change(screen.getByPlaceholderText(/Card Number/i), {
-      target: { value: "1234 5678 9012 3456" },
+      target: { value: "1234567890123456" },
     });
     fireEvent.change(screen.getByPlaceholderText(/Card Holder Name/i), {
       target: { value: "John Doe" },

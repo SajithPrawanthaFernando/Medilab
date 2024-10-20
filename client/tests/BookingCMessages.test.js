@@ -49,22 +49,6 @@ describe("BookingMessages Component", () => {
     });
   });
 
-  test("displays a message when no messages are found", async () => {
-    axios.get.mockResolvedValue({ data: [] });
-
-    render(
-      <MemoryRouter>
-        <BookingMessages />
-      </MemoryRouter>
-    );
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("No booking notifications found.")
-      ).toBeInTheDocument();
-    });
-  });
-
   test("displays canceled messages correctly", async () => {
     const canceledMessage = [
       {

@@ -6,7 +6,7 @@ let instance = null;
 const getAxiosInstance = () => {
   if (!instance) {
     instance = axios.create({
-      baseURL: process.env.REACT_APP_SERVER_URL || "http://localhost:5000",
+      baseURL: "http://localhost:5000",
       headers: {
         "Content-Type": "application/json",
       },

@@ -175,7 +175,7 @@ const DoctorAppointment = () => {
                 >
                   <td className="py-3 px-6">{doctor.name}</td>
                   <td className="py-3 px-6">{doctor.specialization}</td>
-                  <td className="py-3 px-6">${doctor.consultantFee}</td>
+                  <td className="py-3 px-6">LKR {doctor.consultantFee}</td>
                   <td className="py-3 px-6">
                     {doctor.visibilityStartDate
                       ? new Date(

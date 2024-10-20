@@ -1,37 +1,49 @@
+// External libraries
 import React, { useState, useEffect } from "react";
-import CustomerLayout from "../../Layouts/CustomerLayout";
-import { useAuthContext } from "../../../hooks/useAuthContext";
 import { useLocation } from "react-router-dom";
-import PaymentService from "../../../services/PaymentService";
 import Swal from "sweetalert2";
+
+// Context and Services
+import { useAuthContext } from "../../../hooks/useAuthContext";
+import PaymentService from "../../../services/PaymentService";
+
+// Layouts
+import CustomerLayout from "../../Layouts/CustomerLayout";
 
 const Payments = () => {
   const { user } = useAuthContext();
   const location = useLocation();
-
   const { appointmentData } = location.state || {};
 
+  // Appointment details
   const hardcodedDate = appointmentData?.appointmentDate;
   const hardcodedTime = appointmentData?.appointmentTime;
-  const predefinedHospitalCharges = 450.0;
+  const predefinedHospitalCharges = 4500;
 
+  // Doctor and specialization details
   const [doctor, setDoctor] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [consultantFee, setConsultantFee] = useState("");
+
+  // Payment-related state
   const [totalFee, setTotalFee] = useState(0);
   const [paymentOption, setPaymentOption] = useState("card");
   const [paymentSlip, setPaymentSlip] = useState(null);
+
+  // Card payment details
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolderName, setCardHolderName] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
 
+  //Calculate total fee
   useEffect(() => {
     const calculatedTotalFee =
       parseFloat(consultantFee) + predefinedHospitalCharges;
     setTotalFee(isNaN(calculatedTotalFee) ? 0 : calculatedTotalFee);
   }, [consultantFee]);
 
+  // Fetch doctor data
   useEffect(() => {
     if (appointmentData?.doctorId) {
       const fetchDoctorData = async () => {
@@ -58,8 +70,87 @@ const Payments = () => {
     }
   }, [appointmentData]);
 
+  const formatErrorMessages = () => {
+    return Object.values(errors)
+      .filter((error) => error !== "") // Filter out empty messages
+      .join("\n"); // Join the messages with a newline for readability
+  };
+
+  const [errors, setErrors] = useState({
+    cardNumber: "",
+    cardHolderName: "",
+    expiryDate: "",
+    cvv: "",
+  });
+
+  const validateFields = () => {
+    const newErrors = {
+      cardNumber: "",
+      cardHolderName: "",
+      expiryDate: "",
+      cvv: "",
+    };
+    let isValid = true;
+
+    // Card Number validation
+    if (!cardNumber) {
+      newErrors.cardNumber = "Card number is required.";
+      isValid = false;
+    } else if (!/^\d{16}$/.test(cardNumber)) {
+      newErrors.cardNumber = "Card number must be 16 digits.";
+      isValid = false;
+    }
+
+    // Card Holder Name validation
+    if (!cardHolderName) {
+      newErrors.cardHolderName = "Card holder name is required.";
+      isValid = false;
+    }
+
+    // Expiry Date validation
+    if (!expiryDate) {
+      newErrors.expiryDate = "Expiry date is required.";
+      isValid = false;
+    } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiryDate)) {
+      newErrors.expiryDate = "Expiry date must be in MM/YY format.";
+      isValid = false;
+    }
+
+    // CVV validation
+    if (!cvv) {
+      newErrors.cvv = "CVV is required.";
+      isValid = false;
+    } else if (!/^\d{3}$/.test(cvv)) {
+      newErrors.cvv = "CVV must be 3 digits.";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  useEffect(()=>{
+    validateFields();
+  },[cardNumber,expiryDate,cardHolderName,cvv])
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (paymentOption === "card") {
+      const valid = validateFields();
+
+      if (!valid) {
+        var errorMessage = formatErrorMessages();
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: errorMessage,
+        });
+        errorMessage = ""
+        return;
+      }
+    }
 
     if (paymentOption === "slip" && !paymentSlip) {
       Swal.fire({
@@ -70,6 +161,7 @@ const Payments = () => {
       return;
     }
 
+    // Prepare form data
     const formData = new FormData();
 
     formData.append("email", user.email);
@@ -87,8 +179,10 @@ const Payments = () => {
     }
 
     try {
+      // Get an instance of the PaymentService
       const paymentService = PaymentService.getInstance();
 
+      // Submit payment
       const result = await paymentService.submitPayment(formData);
       console.log("Payment submitted successfully:", result);
 
@@ -172,9 +266,9 @@ const Payments = () => {
               Consultation Fee*
             </label>
             <input
-              type="number"
+              type="text"
               className="w-full p-2 border rounded-md"
-              value={consultantFee}
+              value={`${consultantFee}.00 LKR`}
               readOnly
             />
           </div>
@@ -185,9 +279,9 @@ const Payments = () => {
                 Hospital Charges (Predefined)*
               </label>
               <input
-                type="number"
+                type="text"
                 className="w-full p-2 border rounded-md"
-                value={predefinedHospitalCharges}
+                value={`${predefinedHospitalCharges}.00 LKR`}
                 readOnly
               />
             </div>
@@ -197,9 +291,9 @@ const Payments = () => {
                 Total Fee*
               </label>
               <input
-                type="number"
+                type="text"
                 className="w-full p-2 border rounded-md"
-                value={totalFee}
+                value={`${totalFee}.00 LKR`}
                 readOnly
               />
             </div>

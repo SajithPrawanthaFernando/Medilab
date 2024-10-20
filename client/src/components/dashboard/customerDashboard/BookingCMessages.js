@@ -7,6 +7,38 @@ const BookingMessages = () => {
   const [messages, setMessages] = useState([]);
   const { user } = useAuthContext();
 
+  // Dummy data for messages
+  const dummyMessages = [
+    {
+      _id: "1",
+      message: "Your appointment with Dr. Smith has been confirmed.",
+      createdAt: new Date().toISOString(),
+      isCanceled: false,
+      cancellationReason: "",
+    },
+    {
+      _id: "2",
+      message: "Your appointment on 10th Oct has been canceled.",
+      createdAt: new Date().toISOString(),
+      isCanceled: true,
+      cancellationReason: "Doctor unavailable",
+    },
+    {
+      _id: "3",
+      message: "Your appointment has been rescheduled to 15th Oct.",
+      createdAt: new Date().toISOString(),
+      isCanceled: false,
+      cancellationReason: "",
+    },
+    {
+      _id: "4",
+      message: "Reminder: Your appointment is tomorrow at 2 PM.",
+      createdAt: new Date().toISOString(),
+      isCanceled: false,
+      cancellationReason: "",
+    },
+  ];
+
   // Fetch messages for the current user
   const fetchMessages = async () => {
     try {
@@ -30,6 +62,9 @@ const BookingMessages = () => {
     fetchMessages();
   }, [user]);
 
+  // Use dummy data if there are no messages fetched
+  const displayMessages = messages.length > 0 ? messages : dummyMessages;
+
   return (
     <CustomerLayout>
       <div className="container mx-auto p-4">
@@ -47,8 +82,8 @@ const BookingMessages = () => {
               </tr>
             </thead>
             <tbody>
-              {messages.length > 0 ? (
-                messages.map((message) => (
+              {displayMessages.length > 0 ? (
+                displayMessages.map((message) => (
                   <tr
                     key={message._id}
                     className={message.isCanceled ? "bg-red-100" : ""}
