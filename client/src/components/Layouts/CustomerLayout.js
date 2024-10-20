@@ -16,6 +16,8 @@ import {
   faTrash,
   faSignOutAlt,
   faIdCard,
+  faCalendarAlt,
+  faEnvelope,
 } from "@fortawesome/free-solid-svg-icons";
 
 const CustomerLayout = ({ children }) => {
@@ -179,6 +181,36 @@ const CustomerLayout = ({ children }) => {
                     Digital Card
                   </Link>
                 </li>
+                {user && (
+                  <li>
+                    <Link
+                      to={`/user/appoinment`}
+                      className={`flex items-center p-2 text-gray-700 rounded hover:bg-gray-200 ${
+                        location.pathname === "/user/notifications"
+                          ? "bg-gray-200"
+                          : ""
+                      }`}
+                    >
+                      <FontAwesomeIcon icon={faCalendarAlt} className="mr-2" />
+                      Appoinments
+                    </Link>
+                  </li>
+                )}
+                {user && (
+                  <li>
+                    <Link
+                      to={`/user/appoinmentsmessages`}
+                      className={`flex items-center p-2 text-gray-700 rounded hover:bg-gray-200 ${
+                        location.pathname === "/user/appoinmentsmessages"
+                          ? "bg-gray-200"
+                          : ""
+                      }`}
+                    >
+                      <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
+                      Appoinments messages
+                    </Link>
+                  </li>
+                )}
                 {user && (
                   <li>
                     <Link

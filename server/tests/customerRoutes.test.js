@@ -1,14 +1,18 @@
 const request = require("supertest");
 const express = require("express");
-const customerRoutes = require("../routes/customerRoutes"); // Adjust the path as necessary
-const User = require("../models/user"); // Adjust the path as necessary
+const customerRoutes = require("../routes/customerRoutes");
+const User = require("../models/user");
+const TestRecord = require("../models/testRecord");
+const TreatmentRecord = require("../models/treatmentschema"); // Adjust the path
 
 // Mock the User model
 jest.mock("../models/User");
+jest.mock("../models/testRecord");
+jest.mock("../models/treatmentschema");
 
 const app = express();
 app.use(express.json());
-app.use("/auth", customerRoutes); // Use your routes
+app.use("/auth", customerRoutes);
 
 describe("Customer Routes", () => {
   // Test for GET /auth/handlecustomer
@@ -170,6 +174,98 @@ describe("Customer Routes", () => {
       // Assert: Check if the response is as expected
       expect(response.statusCode).toBe(500);
       expect(response.body).toHaveProperty("message", "Failed to delete user");
+    });
+  });
+
+  describe("GET /auth/peaktestdates", () => {
+    it("should return the top 5 peak test dates", async () => {
+      const mockPeakTestDates = [
+        { _id: "2023-10-01", count: 5 },
+        { _id: "2023-09-25", count: 4 },
+        { _id: "2023-08-15", count: 3 },
+        { _id: "2023-07-10", count: 2 },
+        { _id: "2023-06-30", count: 1 },
+      ];
+
+      // Mock the TestRecord.aggregate method
+      TestRecord.aggregate.mockResolvedValue(mockPeakTestDates);
+
+      const response = await request(app).get("/auth/peaktestdates");
+
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(5);
+      expect(response.body[0]).toHaveProperty("_id", "2023-10-01");
+      expect(response.body[0]).toHaveProperty("count", 5);
+    });
+
+    it("should return 404 if no peak test dates are found", async () => {
+      // Mock the TestRecord.aggregate method to return an empty array
+      TestRecord.aggregate.mockResolvedValue([]);
+
+      const response = await request(app).get("/auth/peaktestdates");
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toHaveProperty(
+        "message",
+        "No peak test dates found."
+      );
+    });
+
+    it("should handle errors gracefully", async () => {
+      // Mock the TestRecord.aggregate method to throw an error
+      TestRecord.aggregate.mockRejectedValue(new Error("Database error"));
+
+      const response = await request(app).get("/auth/peaktestdates");
+
+      expect(response.statusCode).toBe(500);
+      expect(response.body).toHaveProperty("message", "Database error");
+    });
+  });
+
+  describe("GET /auth/peaktreatmentdates", () => {
+    it("should return the top 5 peak treatment dates", async () => {
+      const mockPeakTreatmentDates = [
+        { _id: "2023-10-01", count: 10 },
+        { _id: "2023-09-25", count: 8 },
+        { _id: "2023-08-15", count: 6 },
+        { _id: "2023-07-10", count: 5 },
+        { _id: "2023-06-30", count: 4 },
+      ];
+
+      // Mock the TreatmentRecord.aggregate method
+      TreatmentRecord.aggregate.mockResolvedValue(mockPeakTreatmentDates);
+
+      const response = await request(app).get("/auth/peaktreatmentdates");
+
+      expect(response.statusCode).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(5);
+      expect(response.body[0]).toHaveProperty("_id", "2023-10-01");
+      expect(response.body[0]).toHaveProperty("count", 10);
+    });
+
+    it("should return 404 if no peak treatment dates are found", async () => {
+      // Mock the TreatmentRecord.aggregate method to return an empty array
+      TreatmentRecord.aggregate.mockResolvedValue([]);
+
+      const response = await request(app).get("/auth/peaktreatmentdates");
+
+      expect(response.statusCode).toBe(404);
+      expect(response.body).toHaveProperty(
+        "message",
+        "No peak treatment dates found."
+      );
+    });
+
+    it("should handle errors gracefully", async () => {
+      // Mock the TreatmentRecord.aggregate method to throw an error
+      TreatmentRecord.aggregate.mockRejectedValue(new Error("Database error"));
+
+      const response = await request(app).get("/auth/peaktreatmentdates");
+
+      expect(response.statusCode).toBe(500);
+      expect(response.body).toHaveProperty("message", "Database error");
     });
   });
 });

@@ -13,9 +13,14 @@ const AdminLayout = ({ children }) => {
   const location = useLocation();
   const [isCustomersOpen, setIsCustomersOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isReportsOpen, setIsReportsOpen] = useState(false); // State for Reports submenu
 
   const toggleCustomers = () => {
     setIsCustomersOpen(!isCustomersOpen);
+  };
+
+  const toggleReports = () => {
+    setIsReportsOpen(!isReportsOpen); // Toggle Reports submenu
   };
 
   const toggleSidebar = () => {
@@ -151,19 +156,105 @@ const AdminLayout = ({ children }) => {
                       View Treatment Report
                     </Link>
                   </li>
+                  <li>
+                    <Link
+                      to="/admin/allpayments"
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
+                        isActive("/admin/viewtreatment")
+                          ? "bg-blue-100 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      View All Payments
+                    </Link>
+                  </li>
+                </ul>
+              )}
+            </li>
+            {/* Reports */}
+            <li>
+              <button
+                onClick={toggleReports}
+                className={`flex items-center justify-between w-full py-2 px-6 text-gray-700 hover:bg-blue-100 rounded-lg focus:outline-none transition duration-200 ${
+                  isSubActive([
+                    "/admin/GenerateReport",
+                    "/admin/DisplayReport",
+                    "/admin/PeakHour",
+                  ])
+                    ? "bg-blue-100 font-semibold"
+                    : ""
+                }`}
+              >
+                <div className="flex items-center">
+                  <FaComments className="mr-3 text-blue-600" />
+                  Reports
+                </div>
+                {isReportsOpen ? <FaChevronUp /> : <FaChevronDown />}
+              </button>
+              {/* Reports Submenu */}
+              {isReportsOpen && (
+                <ul className="ml-4">
+                  <li>
+                    <Link
+                      to="/admin/GenerateReport"
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
+                        isActive("/admin/GenerateReport")
+                          ? "bg-blue-100 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      Test & Treatment
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/admin/DisplayReport"
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
+                        isActive("/admin/DisplayReport")
+                          ? "bg-blue-100 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      Appointment & Doctor
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/admin/PeakHour"
+                      className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
+                        isActive("/admin/PeakHour")
+                          ? "bg-blue-100 font-semibold"
+                          : ""
+                      }`}
+                    >
+                      Peak Hour
+                    </Link>
+                  </li>
                 </ul>
               )}
             </li>
             <li>
               <Link
-                to="/admin/GenerateReport"
-                className={`block py-2 px-6 text-gray-600 hover:bg-blue-100 rounded-lg transition duration-200 ${
-                  isActive("/admin/viewtreatment")
-                    ? "bg-blue-100 font-semibold"
+                to="/admin/doctors"
+                className={`flex items-center py-2 px-6 text-gray-700 hover:bg-gray-200 ${
+                  isActive("/admin/doctor") ? "bg-gray-200 font-semibold" : ""
+                }`}
+              >
+                <FaUsers className="mr-3 text-blue-600" />
+                Doctor
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/admin/appoinmentdash"
+                className={`flex items-center py-2 px-6 text-gray-700 hover:bg-gray-200 ${
+                  isActive("/admin/appoinmentdash")
+                    ? "bg-gray-200 font-semibold"
                     : ""
                 }`}
               >
-                Generate Report
+                <FaUsers className="mr-3 text-blue-600" />
+                Appointment
               </Link>
             </li>
           </ul>

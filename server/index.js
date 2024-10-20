@@ -3,6 +3,9 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const userrouter = require("./routes/customerRoutes");
+const paymentrouter = require("./routes/paymentRoutes");
+const appointmentRoutes = require("./routes/appointments");
+const doctorRoutes = require("./routes/doctors");
 const db = require("./databse");
 
 dotenv.config();
@@ -32,6 +35,10 @@ const startServer = async () => {
   // Set up routes
   app.use("/auth", userrouter);
   app.use("/api/stripe", StripeRoutes);
+  app.use("/payment", paymentrouter);
+  app.use("/api/appointments", appointmentRoutes);
+
+  app.use("/api/doctors", doctorRoutes);
 
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {

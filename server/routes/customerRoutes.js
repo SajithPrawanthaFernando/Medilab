@@ -13,6 +13,8 @@ const { fileURLToPath } = require("url");
 const { dirname } = require("path");
 const TestRecord = require("../models/testRecord");
 const TreatmentRecord = require("../models/treatmentschema");
+const Appointment = require("../models/Appointment");
+const Doctor = require("../models/Doctor");
 
 const createToken = (_id) => {
   return jwt.sign({ _id }, process.env.KEY, { expiresIn: "90d" });
@@ -298,6 +300,191 @@ router.post("/sendfeedback/:email", async (req, res) => {
   } catch (error) {
     console.error("Failed to update feedback:", error);
     res.status(500).json({ error: "Failed to update feedback" });
+  }
+});
+
+// Get peak test record dates for all users
+router.get("/peaktestdates", async (req, res) => {
+  try {
+    const peakTestDates = await TestRecord.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+    ]);
+
+    if (peakTestDates.length === 0) {
+      return res.status(404).json({ message: "No peak test dates found." });
+    }
+
+    res.json(peakTestDates);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get peak treatment record dates for all users
+router.get("/peaktreatmentdates", async (req, res) => {
+  try {
+    const peakTreatmentDates = await TreatmentRecord.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$beginDate" } },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+    ]);
+
+    if (peakTreatmentDates.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No peak treatment dates found." });
+    }
+
+    res.json(peakTreatmentDates);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get peak appointment record dates for all users
+router.get("/peakappointmentdates", async (req, res) => {
+  try {
+    const peakAppointmentDates = await Appointment.aggregate([
+      {
+        $group: {
+          _id: "$appointmentDate", // Group by the appointmentDate field
+          count: { $sum: 1 }, // Count the number of occurrences for each date
+        },
+      },
+      {
+        $sort: { count: -1 }, // Sort by count in descending order
+      },
+    ]);
+
+    if (peakAppointmentDates.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No peak appointment dates found." });
+    }
+
+    res.json(peakAppointmentDates);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Endpoint to count doctors by specialization
+router.get("/specialization-count", async (req, res) => {
+  try {
+    const specializationCount = await Doctor.aggregate([
+      {
+        $match: {
+          specialization: { $ne: null, $exists: true }, // Only consider documents where specialization is defined
+        },
+      },
+      {
+        $group: {
+          _id: "$specialization",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Check if there are any results and return accordingly
+    if (specializationCount.length === 0) {
+      return res.status(404).json({ message: "No specializations found." });
+    }
+
+    res.status(200).json(specializationCount);
+  } catch (error) {
+    console.error("Error fetching specialization count:", error.message); // Log the error for debugging
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
+  }
+});
+
+// Function to convert time string from 12-hour format to 24-hour format
+const convertTo24HourFormat = (timeString) => {
+  const [time, modifier] = timeString.split(" ");
+  let [hours, minutes] = time.split(":");
+
+  if (modifier === "PM" && hours !== "12") {
+    hours = parseInt(hours, 10) + 12;
+  } else if (modifier === "AM" && hours === "12") {
+    hours = "00";
+  }
+
+  return `${hours}:${minutes}`;
+};
+
+// Endpoint to find peak hour of appointments on a selected day
+router.get("/peak-hour/:date", async (req, res) => {
+  const { date } = req.params; // Correctly access the 'date' parameter
+
+  // Check if date query parameter is provided
+  if (!date) {
+    return res
+      .status(400)
+      .json({ message: "Date query parameter is required" });
+  }
+
+  try {
+    // Aggregate to find the peak hour
+    const peakHourData = await Appointment.aggregate([
+      {
+        // Match appointments for the specified date
+        $match: {
+          appointmentDate: {
+            $gte: new Date(date + "T00:00:00.000Z"), // Start of the day
+            $lt: new Date(date + "T23:59:59.999Z"), // End of the day
+          },
+        },
+      },
+      {
+        // Group by hour extracted from the appointmentTime string (12-hour format)
+        $group: {
+          _id: {
+            $cond: [
+              { $regexMatch: { input: "$appointmentTime", regex: /PM$/ } },
+              { $add: [{ $substr: ["$appointmentTime", 0, 2] }, 12] }, // Convert PM hour
+              { $substr: ["$appointmentTime", 0, 2] }, // Use AM hour as is
+            ],
+          },
+          count: { $sum: 1 }, // Count the number of appointments per hour
+        },
+      },
+      {
+        // Sort the results by count in descending order
+        $sort: { count: -1 },
+      },
+      {
+        // Limit the results to the top hour
+        $limit: 1,
+      },
+    ]);
+
+    // If no peak hour data found
+    if (peakHourData.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No appointments found for the selected date" });
+    }
+
+    // Respond with the peak hour data
+    res.status(200).json(peakHourData);
+  } catch (error) {
+    console.error("Error fetching peak hour:", error.message);
+    res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 });
 

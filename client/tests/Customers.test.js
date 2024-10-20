@@ -17,7 +17,7 @@ describe("Customers Component", () => {
       _id: "1",
       username: "John Doe",
       email: "john@example.com",
-      phone: "1234567890",
+      phone: "0234567890",
       updated: new Date().toISOString(),
       role: "user",
       filename: "profile1.jpg",

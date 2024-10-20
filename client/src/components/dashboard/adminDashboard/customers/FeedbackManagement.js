@@ -214,9 +214,9 @@ const FeedbackManagement = () => {
               <tr className="bg-blue-100 text-gray-600 uppercase text-sm leading-normal">
                 <th className="py-3 px-6 text-left">Customer ID</th>
                 <th className="py-3 px-6 text-left">Profile</th>
-                <th className="py-3 px-6 text-left">Customer Name</th>
-                <th className="py-3 px-6 text-left">Customer Email</th>
-                <th className="py-3 px-6 text-left">Customer Phone</th>
+                <th className="py-3 px-6 text-left">Name</th>
+                <th className="py-3 px-6 text-left">Email</th>
+                <th className="py-3 px-6 text-left">Phone</th>
                 <th className="py-3 px-6 text-left">Feedback date</th>
                 <th className="py-3 px-6 text-center">Action</th>
               </tr>

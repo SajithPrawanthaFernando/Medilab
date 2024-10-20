@@ -8,6 +8,7 @@ const GenerateReport = () => {
   const [peakTestDates, setPeakTestDates] = useState([]);
   const [peakTreatmentDates, setPeakTreatmentDates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // State to hold error messages
   const { user } = useAuthContext();
   const serverUrl =
     process.env.REACT_APP_SERVER_URL || "http://localhost:5000/auth";
@@ -21,6 +22,7 @@ const GenerateReport = () => {
       setPeakTestDates(response.data);
     } catch (error) {
       console.error("Error fetching peak test dates:", error);
+      setError("Error fetching peak test dates"); // Set error message
     }
   };
 
@@ -33,6 +35,7 @@ const GenerateReport = () => {
       setPeakTreatmentDates(response.data);
     } catch (error) {
       console.error("Error fetching peak treatment dates:", error);
+      setError("Error fetching peak treatment dates"); // Set error message
     }
   };
 
@@ -40,6 +43,7 @@ const GenerateReport = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setError(null); // Reset error state
       await Promise.all([fetchPeakTestDates(), fetchPeakTreatmentDates()]);
       setLoading(false);
     };
@@ -67,7 +71,7 @@ const GenerateReport = () => {
 
   return (
     <AdminLayout>
-      <div className="bg-white p-6 rounded-lg my-2 mx-1  shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)]">
+      <div className="bg-white p-6 rounded-lg my-2 mx-1 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)]">
         {/* Header Section */}
         <div className="flex flex-col mb-6">
           <h2 className="text-2xl font-semibold text-blue-600 mb-2">
@@ -80,6 +84,8 @@ const GenerateReport = () => {
 
         {loading ? (
           <div className="text-gray-700">Loading...</div>
+        ) : error ? (
+          <div className="text-red-600">{error}</div> // Display error message
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Peak Test Dates Section */}
