@@ -1,18 +1,82 @@
 const express = require("express");
-const Payment = require("../models/payment"); // Assuming you have a Payment model
+const Payment = require("../models/payment");
 const multer = require("multer");
 const { upload } = require("../middleware/uploadMiddleware.js");
 const User = require("../models/user.js");
 const Doctor = require("../models/Doctor");
-const path = require("path"); // Import path module
-const fs = require("fs"); // Import filesystem module
+const path = require("path");
+const fs = require("fs");
 
 const router = express.Router();
+
+const isValidFilename = (filename) => {
+  const validFilenameRegex = /^[a-zA-Z0-9._-]+\.(jpg|jpeg|png|gif|webp)$/i;
+  
+  return validFilenameRegex.test(filename) && 
+         !filename.includes('..') && 
+         !path.isAbsolute(filename);
+};
+
+router.get("/images/:imageName", (req, res) => {
+  const imageName = req.params.imageName;
+  
+  if (!isValidFilename(imageName)) {
+    return res.status(400).json({ 
+      error: "Invalid filename format",
+      message: "Filename can only contain letters, numbers, hyphens, underscores, and common image extensions"
+    });
+  }
+  
+  const safeBaseDir = path.resolve("C:/images");
+  const imagePath = path.join(safeBaseDir, imageName);
+  
+  if (!imagePath.startsWith(safeBaseDir)) {
+    return res.status(400).json({ 
+      error: "Invalid path",
+      message: "Access denied" 
+    });
+  }
+  
+  fs.access(imagePath, fs.constants.F_OK | fs.constants.R_OK, (err) => {
+    if (err) {
+      console.warn(`Attempted to access non-existent file: ${imageName}`);
+      return res.status(404).json({ 
+        error: "Image not found",
+        message: "The requested image does not exist or is not accessible"
+      });
+    }
+    
+    const ext = path.extname(imageName).toLowerCase();
+    const contentTypes = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.webp': 'image/webp'
+    };
+    
+    res.set('Content-Type', contentTypes[ext] || 'application/octet-stream');
+    
+    const fileStream = fs.createReadStream(imagePath);
+    
+    fileStream.on('error', (error) => {
+      console.error('Error streaming file:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: "File read error",
+          message: "Unable to read the requested file"
+        });
+      }
+    });
+    
+    fileStream.pipe(res);
+  });
+});
 
 // Get all payments
 router.get("/", async (req, res) => {
   try {
-    const payments = await Payment.find(); // Corrected variable name to fetch Payment records
+    const payments = await Payment.find();
     res.json(payments);
   } catch (error) {
     res.status(500).json({ message: "Error fetching payments", error });
@@ -33,10 +97,9 @@ router.post("/add-payment", upload.single("paymentSlip"), async (req, res) => {
     paymentOption,
   } = req.body;
 
-  const paymentSlip = req.file; // Access the uploaded file
+  const paymentSlip = req.file;
 
   try {
-    // Create a new payment record
     const newPaymentData = {
       email,
       doctor,
@@ -49,9 +112,8 @@ router.post("/add-payment", upload.single("paymentSlip"), async (req, res) => {
       paymentOption,
     };
 
-    // Add paymentSlipFilename only if paymentSlip exists
     if (paymentSlip) {
-      newPaymentData.paymentSlipFilename = paymentSlip.originalname; // Save the file name if available
+      newPaymentData.paymentSlipFilename = paymentSlip.originalname;
     }
 
     const newPayment = new Payment(newPaymentData);
@@ -64,16 +126,16 @@ router.post("/add-payment", upload.single("paymentSlip"), async (req, res) => {
 });
 
 router.get("/customer/:email", async (req, res) => {
-  const userEmail = req.params.email; // Extract the email from request parameters
+  const userEmail = req.params.email;
 
   console.log("Email:", userEmail);
 
   try {
-    const user = await User.findOne({ email: userEmail }); // Find the user by email
+    const user = await User.findOne({ email: userEmail });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.json(user); // Send user data as response
+    res.json(user);
   } catch (error) {
     console.error("Error fetching user data:", error);
     res.status(500).json({ message: "Failed to fetch user data" });
@@ -81,15 +143,14 @@ router.get("/customer/:email", async (req, res) => {
 });
 
 // Update payment status
-// Approve payment status
 router.put("/approve/:id", async (req, res) => {
-  const paymentId = req.params.id; // Extract payment ID from request parameters
+  const paymentId = req.params.id;
 
   try {
     const updatedPayment = await Payment.findByIdAndUpdate(
       paymentId,
-      { status: "approved" }, // Set the status to approved
-      { new: true } // Return the updated document
+      { status: "approved" },
+      { new: true }
     );
 
     if (!updatedPayment) {
@@ -103,15 +164,14 @@ router.put("/approve/:id", async (req, res) => {
   }
 });
 
-// Reject payment status
 router.put("/reject/:id", async (req, res) => {
-  const paymentId = req.params.id; // Extract payment ID from request parameters
+  const paymentId = req.params.id;
 
   try {
     const updatedPayment = await Payment.findByIdAndUpdate(
       paymentId,
-      { status: "rejected" }, // Set the status to rejected
-      { new: true } // Return the updated document
+      { status: "rejected" },
+      { new: true }
     );
 
     if (!updatedPayment) {
@@ -125,30 +185,17 @@ router.put("/reject/:id", async (req, res) => {
   }
 });
 
-router.get("/images/:imageName", (req, res) => {
-  const imageName = req.params.imageName;
-  const imagePath = path.join("C:/images", imageName); // Construct absolute path to the image
-  // Check if the file exists
-  fs.access(imagePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      res.status(404).send("Image not found");
-    } else {
-      res.sendFile(imagePath);
-    }
-  });
-});
-
 router.get("/doctor/:id", async (req, res) => {
-  const { id } = req.params; // Get the doctor id from the route parameter
+  const { id } = req.params;
 
   try {
-    const doctor = await Doctor.findById(id); // Use the mongoose `findById` method
+    const doctor = await Doctor.findById(id);
 
     if (!doctor) {
       return res.status(404).json({ message: "Doctor not found" });
     }
 
-    res.status(200).json(doctor); // Send the doctor data in the response
+    res.status(200).json(doctor);
   } catch (error) {
     res.status(500).json({ message: "Error fetching doctor", error });
   }

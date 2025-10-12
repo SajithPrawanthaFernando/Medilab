@@ -5,6 +5,10 @@ import { useAuthContext } from "../../hooks/useAuthContext";
 import React, { useEffect, useState } from "react";
 import Axios from "axios";
 import proImg from "../../assets/images/9434619.jpg";
+import {
+  validateImageSource,
+  getSafeImageSource,
+} from "../../utils/securityUtils";
 
 const Header = () => {
   const location = useLocation();
@@ -81,7 +85,7 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             <span className="text-gray-700">{user.email}</span>
             <img
-              src={imageData ? `data:image/jpeg;base64,${imageData}` : proImg}
+              src={getSafeImageSource(imageData, proImg)}
               alt="Profile"
               onClick={() => (window.location.href = `/user/${user.email}`)}
               className="w-10 h-10 rounded-full cursor-pointer border-2 border-blue-500"
@@ -223,9 +227,7 @@ const MobileMenu = () => {
                 </li>
                 <li>
                   <img
-                    src={
-                      imageData ? `data:image/jpeg;base64,${imageData}` : proImg
-                    }
+                    src={getSafeImageSource(imageData, proImg)}
                     alt="Profile"
                     onClick={() => {
                       window.location.href = `/user/${user.email}`;

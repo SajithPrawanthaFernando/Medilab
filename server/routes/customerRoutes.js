@@ -22,16 +22,78 @@ const createToken = (_id) => {
 
 const router = express.Router();
 
+const isValidFilename = (filename) => {
+  const validFilenameRegex = /^[a-zA-Z0-9._-]+\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i;
+  
+  return validFilenameRegex.test(filename) && 
+         !filename.includes('..') && 
+         !path.isAbsolute(filename) &&
+         filename === path.basename(filename); // Ensure it's just a filename, not a path
+};
+
 router.get("/images/:imageName", (req, res) => {
   const imageName = req.params.imageName;
-  const imagePath = path.join("D:/images", imageName); // Construct absolute path to the image
-  // Check if the file exists
-  fs.access(imagePath, fs.constants.F_OK, (err) => {
+  
+  if (!isValidFilename(imageName)) {
+    return res.status(400).json({ 
+      error: "Invalid filename format",
+      message: "Filename can only contain letters, numbers, hyphens, underscores, and common image extensions"
+    });
+  }
+  
+  const safeBaseDir = path.resolve("D:/images");
+  const imagePath = path.join(safeBaseDir, imageName);
+  
+  const resolvedPath = path.resolve(imagePath);
+  if (!resolvedPath.startsWith(safeBaseDir)) {
+    console.warn(`Path traversal attempt detected: ${imageName}`);
+    return res.status(400).json({ 
+      error: "Invalid path",
+      message: "Access denied" 
+    });
+  }
+  
+  fs.access(imagePath, fs.constants.F_OK | fs.constants.R_OK, (err) => {
     if (err) {
-      res.status(404).send("Image not found");
-    } else {
-      res.sendFile(imagePath);
+      console.warn(`Attempted to access non-existent or unreadable file: ${imageName}`);
+      return res.status(404).json({ 
+        error: "Image not found",
+        message: "The requested image does not exist or is not accessible"
+      });
     }
+    
+    const ext = path.extname(imageName).toLowerCase();
+    const contentTypes = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.webp': 'image/webp',
+      '.bmp': 'image/bmp',
+      '.svg': 'image/svg+xml'
+    };
+    
+    res.set('Content-Type', contentTypes[ext] || 'application/octet-stream');
+    
+    res.set('X-Content-Type-Options', 'nosniff');
+    
+    const fileStream = fs.createReadStream(imagePath);
+    
+    fileStream.on('error', (error) => {
+      console.error('Error streaming file:', error);
+      if (!res.headersSent) {
+        res.status(500).json({ 
+          error: "File read error",
+          message: "Unable to read the requested file"
+        });
+      }
+    });
+    
+    fileStream.on('open', () => {
+      console.log(`Serving image: ${imageName}`);
+    });
+    
+    fileStream.pipe(res);
   });
 });
 

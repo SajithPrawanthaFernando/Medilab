@@ -7,6 +7,7 @@ import proImg from "../../../assets/images/9434619.jpg";
 import qrCodeImg from "../../../assets/images/qr.png";
 import CustomerLayout from "../../Layouts/CustomerLayout";
 import Logo from "../../../assets/images/logo.png";
+import DOMPurify from "dompurify";
 
 const CustomerDigitalCard = () => {
   const { user } = useAuthContext(); // Get user info from auth context
@@ -91,8 +92,24 @@ const CustomerDigitalCard = () => {
     return btoa(binary);
   };
 
+  const sanitizeHTML = (str) => {
+    if (!str) return "";
+    return DOMPurify.sanitize(str.toString());
+  };
+
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
+
+    // Sanitize ALL user inputs
+    const safeUsername = sanitizeHTML(userr?.username);
+    const safeEmail = sanitizeHTML(userr?.email);
+    const safeFirstname = sanitizeHTML(userr?.firstname);
+    const safeLastname = sanitizeHTML(userr?.lastname);
+    const safePhone = sanitizeHTML(userr?.phone);
+    const safeAddress = sanitizeHTML(userr?.address);
+    const safeDate = userr
+      ? sanitizeHTML(new Date(userr.updated).toLocaleDateString())
+      : "N/A";
 
     const printContent = `
       <html>
@@ -135,35 +152,31 @@ const CustomerDigitalCard = () => {
           </style>
         </head>
         <body>
-          <div class="card">
-            <img src="${Logo}" alt="Hospital Logo" class="logo" /></br>
-            
-            <img src="${
-              imageData ? `data:image/jpeg;base64,${imageData}` : proImg
-            }" alt="${userr ? userr.username : "User"}" class="profile-img" />
-            <h3>${userr ? userr.username : "User"}</h3>
-            <p>Email: ${userr ? userr.email : "N/A"}</p>
-            <p>First Name: ${userr ? userr.firstname : "N/A"}</p>
-            <p>Last Name: ${userr ? userr.lastname : "N/A"}</p>
-            <p>Phone: ${userr ? userr.phone : "N/A"}</p>
-            <p>Address: ${userr ? userr.address : "N/A"}</p>
-            <p>Date: ${
-              userr ? new Date(userr.updated).toLocaleDateString() : "N/A"
-            }</p>
-            <h4>QR Code:</h4>
-            <img src="${qrCodeImg}" alt="QR Code" class="qr-code" />
-          </div>
-        </body>
+        <div class="card">
+          <img src="${Logo}" alt="Hospital Logo" class="logo" /></br>
+          
+          <img src="${
+            imageData ? `data:image/jpeg;base64,${imageData}` : proImg
+          }" alt="${safeUsername}" class="profile-img" />
+          <h3>${safeUsername}</h3>
+          <p>Email: ${safeEmail}</p>
+          <p>First Name: ${safeFirstname}</p>
+          <p>Last Name: ${safeLastname}</p>
+          <p>Phone: ${safePhone}</p>
+          <p>Address: ${safeAddress}</p>
+          <p>Date: ${safeDate}</p>
+          <h4>QR Code:</h4>
+          <img src="${qrCodeImg}" alt="QR Code" class="qr-code" />
+        </div>
+      </body>
       </html>
     `;
 
     printWindow.document.write(printContent);
     printWindow.document.close();
-
-    // Wait for the print window to fully load before printing
     printWindow.onload = () => {
       printWindow.print();
-      printWindow.close(); // Close the print window after printing
+      printWindow.close();
     };
   };
 
@@ -177,6 +190,41 @@ const CustomerDigitalCard = () => {
       </CustomerLayout>
     );
   }
+
+  const validateImageSource = (src) => {
+    if (!src) return "/default-avatar.png";
+    if (src.startsWith("data:image/")) {
+      const validBase64Regex =
+        /^data:image\/(jpeg|jpg|png|gif);base64,[A-Za-z0-9+/]*={0,2}$/;
+      if (!validBase64Regex.test(src)) {
+        return "/default-avatar.png";
+      }
+    } else {
+      if (src.startsWith("http")) {
+        try {
+          const url = new URL(src);
+          const allowedDomains = [
+            "localhost",
+            "127.0.0.1",
+          ];
+          const isLocalhost =
+            url.hostname === "localhost" ||
+            url.hostname === "127.0.0.1" ||
+            url.hostname.startsWith("localhost:");
+
+          if (!allowedDomains.includes(url.hostname) && !isLocalhost) {
+            return "/default-avatar.png";
+          }
+        } catch (e) {
+          return "/default-avatar.png";
+        }
+      }
+      else if (!src.startsWith("/")) {
+        return "/default-avatar.png";
+      }
+    }
+    return src;
+  };
 
   return (
     <CustomerLayout>
@@ -202,7 +250,11 @@ const CustomerDigitalCard = () => {
           <img src={Logo} alt="Hospital Logo" className="mx-auto h-12 mb-3" />
           <div className="flex flex-col items-center mb-4">
             <img
-              src={imageData ? `data:image/jpeg;base64,${imageData}` : proImg}
+              src={
+                imageData
+                  ? `data:image/jpeg;base64,${validateImageSource(imageData)}`
+                  : validateImageSource(proImg)
+              }
               alt="Profile"
               className="w-25 h-25 rounded-full cursor-pointer border-2 border-blue-500"
             />
